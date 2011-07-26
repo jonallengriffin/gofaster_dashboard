@@ -1,0 +1,102 @@
+/*Zebra Stripe the list display*/
+*{
+    margin:0;
+    padding:0;
+}
+#result li:nth-child(2n+1) {
+    background-color: #BBffBB;
+}
+#result li:nth-child(2n) {
+  /*background-color: #f7f7f7;*/
+    background-color: #EEFFEE;
+}
+body{
+    background:url('bg.gif');
+    height:100%;
+    font-family: 'Helvetica Neue',Helvetica, Arial;
+}
+h1{
+    font-family: 'Helvetica Neue',Helvetica, Arial;
+    font-weight:200;
+    font-size:38px;
+}
+h2{
+    font-family: 'Helvetica Neue',Helvetica, Arial;
+    font-weight: 200;
+    font-size:28px;
+    margin-bottom:8px;
+}
+h3{
+    font-family: 'Helvetica Neue',Helvetica, Arial;
+    font-weight: 200;
+}
+p, ol, li{
+    font-family: 'Helvetica Neue',Helvetica, Arial;
+}
+#result p{
+    font-size:14px;
+    font-weight:200;
+}
+ol, ul{
+    list-style-position: inside;
+}
+a{
+    color:#090909;
+    text-decoration:none;
+}
+a:hover{
+    color:#000;
+    border-bottom:#000 1px solid;
+}
+#leftcontent li{
+    list-style-type:circle;
+    text-indent:1em;
+    font-size:16px;
+}
+#result{
+    margin-bottom:30px;
+    margin-top:15px;
+}
+#topbar{
+    height:30px;
+    border-bottom:#b5e011 solid 3px;
+    background:#000;
+    margin-bottom:20px;
+}
+#rightcontent{
+    width:598px;
+    float:right;
+    padding-left:30px;
+    padding-right:30px;
+    padding-bottom:35px;
+    height:100%;
+    background:#fff;
+    background-opacity:0.5;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    border:1px #ccc solid;
+    margin-top:22px;
+}
+#leftcontent{
+    width:290px;
+    float:left;
+    height:100%;
+    min-height:500px;
+    background:url('images/gofaster.png') no-repeat;
+    /*padding-top:100px;  */
+    padding-left:10px;
+}
+#logolink{
+    width:250px;
+    height:100px;
+    background: transparent;
+    margin-left:-20px;
+}
+#floatwrapper{
+    height:100%;
+    float:left;
+}
+#content{
+    margin:0 auto;
+    width:960px;
+}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Go Faster! Dashboard Statistics</title>
+
+<link href='screen.css' rel='stylesheet' media='all' type='text/css'>
+<!--
+    = Go Faster Dashboard =
+-->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+<script type="text/javascript" src="./js/highcharts.js"></script>
+<script type="text/javascript" src="./js/modules/exporting.js"></script>
+
+</head>
+
+<body>
+  <div id="topbar"></div>
+    <div id="content">
+        <div id="floatwrapper">
+        <div id="leftcontent">
+            <a href="/"><div id="logolink"></div></a>
+            <h2>View Metrics</h2>
+                <ul>
+                    <li><a href="#" onclick="show_turnaround()">Build Pool Turnaround</a></li>
+                    <li><a href="#" onclick="show_executiontime('build')">Avg Build Time</a></li>
+                    <li><a href="#" onclick="show_executiontime('test')">Avg Test Time</a></li>
+                    <li><a href="#" onclick="show_waittime('build')">Build Machine Wait</a></li>
+                    <li><a href="#" onclick="show_waittime('test')">Test Machine Wait</a></li>
+                    <li><a href="#" onclick="show_overhead('build')">Build Setup & Teardown</a></li>
+                    <li><a href="#" onclick="show_overhead('test')">Test Setup & Teardown</a></li>
+                    <li><a href="#" onclick="show_mochitests()">Top 10 Slowest Mochitests</a></li>
+                </ul>
+        </div>
+        <div id="rightcontent">
+            <div id="result" >
+
+                <h3>Welcome to Mozilla's GoFaster dashboard!</h3>
+                <br/>
+                <p>Here you can find relevant displays for build and test metrics. Please be patient with the graphs -- some of them take longer to load.</p>
+            </div>
+            <div id="errors"></div>
+            <div id="container"></div>
+        </div>
+            <br style="clear:both"/>
+        </div>
+    </div>
+
+
+  <script type="text/javascript" src="./js/graphs.js"></script>
+
+</body>
+</html>
