@@ -11,6 +11,7 @@ import io
 import re
 import templeton
 import web
+import time
 
 try:
   import json
@@ -116,56 +117,29 @@ class TurnaroundHandler(templeton.handlers.JsonHandler):
         #Parse csv into well-formatted JSON -- data for turnaround graph
         f = open( '../html/data/buildfaster.csv', 'r' )
         reader = csv.DictReader(f, fieldnames = ( "submitted_at", "revision", "os", "jobtype", "uid", "results", "wait_time", "start_time", "finish_time", "elapsed", "work_time" ) )
-        json_result = json.dumps( [ row for row in reader ] )
-        #print json_result
-
-        #Deserialize the JSON to get a usable object
-        deserialized = json.loads(json_result)
-        #avg = {}
-        #return_data = {}
+        entries = [ row for row in reader ]
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
-        for x in deserialized:
-            #Loop through all entries, calculate averages per day
-            jobtype = x["jobtype"].split(" ")
-            d = dateutil.parser.parse(x["submitted_at"])
-            datapoint_date = d.strftime("%Y-%m-%d")
-            datapoint_os = x["os"]
+        for entry in entries:
+            # Skip talos
+            if entry["jobtype"] == "talos":
+                continue
 
-            x["wait_time"] = to_seconds(x["wait_time"])
-            x["elapsed"] = to_seconds(x["elapsed"])
+            # Loop through all entries, calculate averages per day
+            (buildtype, jobtype) = entry["jobtype"].split(" ")
+            datapoint_date = dateutil.parser.parse(entry["submitted_at"]).strftime("%Y-%m-%d")
+            datapoint_os = entry["os"]
 
-            if jobtype[0] == "opt":
-                if jobtype[1] == "test":
-                    #tw = wait_time
-                    return_data[datapoint_os][datapoint_date]["opt_test"] += x["wait_time"]
-                    #s1+ta+s2 = elapsed_time
-                    return_data[datapoint_os][datapoint_date]["opt_test"] += x["elapsed"]
-                    return_data[datapoint_os][datapoint_date]["opt_test_counter"] += 1
-                elif jobtype[1] == "build":
-                    #bw = wait_time
-                    return_data[datapoint_os][datapoint_date]["opt_build"] += x["wait_time"]
-                    #s1+ba+s2 = elapsed_time
-                    return_data[datapoint_os][datapoint_date]["opt_build"] += x["elapsed"]
-                    return_data[datapoint_os][datapoint_date]["opt_build_counter"] += 1
-            elif jobtype[0] == "debug":
-                if jobtype[1] == "test":
-                    #tw = wait_time
-                    return_data[datapoint_os][datapoint_date]["dbg_test"] += x["wait_time"]
-                    #s1+ta+s2 = elapsed_time
-                    return_data[datapoint_os][datapoint_date]["dbg_test"] += x["elapsed"]
-                    return_data[datapoint_os][datapoint_date]["dbg_test_counter"] += 1
-                elif jobtype[1] == "build":
-                    #bw = wait_time
-                    return_data[datapoint_os][datapoint_date]["dbg_build"] += x["wait_time"]
-                    #s1+ba+s2 = elapsed_time
-                    return_data[datapoint_os][datapoint_date]["dbg_build"] += x["elapsed"]
-                    return_data[datapoint_os][datapoint_date]["dbg_build_counter"] += 1
-            else:
-                #Talos, do nothing
-                pass
+            entry["wait_time"] = to_seconds(entry["wait_time"])
+            entry["elapsed"] = to_seconds(entry["elapsed"])
 
-        #return json_result
+            datapoint_type = "_".join([buildtype,jobtype])
+            datapoint_counter = datapoint_type + "_counter"
+            
+            return_data[datapoint_os][datapoint_date][datapoint_type] += entry["wait_time"]
+            return_data[datapoint_os][datapoint_date][datapoint_type] += entry["elapsed"]
+            return_data[datapoint_os][datapoint_date][datapoint_counter] += 1
+
         return return_data
 
 #Execution Time handler returns average execution time for builds and tests
