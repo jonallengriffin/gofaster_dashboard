@@ -74,6 +74,13 @@ def to_seconds(stopwatch_time):
     total_seconds = seconds + minutes * 60 + hours * 60 * 60 + days * 60 * 60 * 24
     return int(total_seconds)
 
+#Parse csv into well-formatted JSON -- data for turnaround graph
+def parse_build_csv():
+    f = open( '../html/data/buildfaster.csv', 'r' )
+    reader = csv.DictReader(f, fieldnames = ( "submitted_at", "revision", "os", "jobtype", "uid", "results", "wait_time", "start_time", "finish_time", "elapsed", "work_time" ) )
+    return [ row for row in reader ]
+
+
 #Mochitest handler returns mochitest runtimes on given days and builds
 class MochitestHandler(templeton.handlers.JsonHandler):
     def _GET(self, params, body):
@@ -114,10 +121,7 @@ class TurnaroundHandler(templeton.handlers.JsonHandler):
         except:
             pass
 
-        #Parse csv into well-formatted JSON -- data for turnaround graph
-        f = open( '../html/data/buildfaster.csv', 'r' )
-        reader = csv.DictReader(f, fieldnames = ( "submitted_at", "revision", "os", "jobtype", "uid", "results", "wait_time", "start_time", "finish_time", "elapsed", "work_time" ) )
-        entries = [ row for row in reader ]
+        entries = parse_build_csv()
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
         for entry in entries:
@@ -154,19 +158,11 @@ class ExecutionTimeHandler(templeton.handlers.JsonHandler):
         except:
             show_type = "all"
 
-        #Parse csv into well-formatted JSON -- data for turnaround graph
-        f = open( '../html/data/buildfaster.csv', 'r' )
-        reader = csv.DictReader(f, fieldnames = ( "submitted_at", "revision", "os", "jobtype", "uid", "results", "wait_time", "start_time", "finish_time", "elapsed", "work_time" ) )
-        json_result = json.dumps( [ row for row in reader ] )
-        #print json_result
+        entries = parse_build_csv()
 
-        #Deserialize the JSON to get a usable object
-        deserialized = json.loads(json_result)
-        #avg = {}
-        #return_data = {}
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
-        for x in deserialized:
+        for x in entries:
             #Loop through all entries, calculate averages per day
             jobtype = x["jobtype"].split(" ")
             d = dateutil.parser.parse(x["submitted_at"])
@@ -220,19 +216,11 @@ class WaitTimeHandler(templeton.handlers.JsonHandler):
         except:
             show_type = "all"
 
-        #Parse csv into well-formatted JSON -- data for turnaround graph
-        f = open( '../html/data/buildfaster.csv', 'r' )
-        reader = csv.DictReader(f, fieldnames = ( "submitted_at", "revision", "os", "jobtype", "uid", "results", "wait_time", "start_time", "finish_time", "elapsed", "work_time" ) )
-        json_result = json.dumps( [ row for row in reader ] )
-        #print json_result
+        entries = parse_build_csv()
 
-        #Deserialize the JSON to get a usable object
-        deserialized = json.loads(json_result)
-        #avg = {}
-        #return_data = {}
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
-        for x in deserialized:
+        for x in entries:
             #Loop through all entries, calculate averages per day
             jobtype = x["jobtype"].split(" ")
             d = dateutil.parser.parse(x["submitted_at"])
@@ -286,19 +274,10 @@ class OverheadHandler(templeton.handlers.JsonHandler):
         except:
             show_type = "all"
 
-        #Parse csv into well-formatted JSON -- data for turnaround graph
-        f = open( '../html/data/buildfaster.csv', 'r' )
-        reader = csv.DictReader(f, fieldnames = ( "submitted_at", "revision", "os", "jobtype", "uid", "results", "wait_time", "start_time", "finish_time", "elapsed", "work_time" ) )
-        json_result = json.dumps( [ row for row in reader ] )
-        #print json_result
-
-        #Deserialize the JSON to get a usable object
-        deserialized = json.loads(json_result)
-        #avg = {}
-        #return_data = {}
+        entries = parse_build_csv()
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
-        for x in deserialized:
+        for x in entries:
             #Loop through all entries, calculate averages per day
             jobtype = x["jobtype"].split(" ")
             d = dateutil.parser.parse(x["submitted_at"])
