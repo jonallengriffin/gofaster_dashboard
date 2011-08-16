@@ -15,11 +15,6 @@ import time
 import os.path
 import cPickle as pickle
 
-try:
-  import json
-except:
-  import simplejson as json
-
 config = ConfigParser.ConfigParser()
 config.read("settings.cfg")
 ES_SERVER = config.get("database", "ES_SERVER")
