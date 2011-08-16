@@ -4,6 +4,7 @@ import sys
 import csv
 import dateutil.parser
 import cPickle as pickle
+import datetime
 
 # Converts datasource formatted time (stopwatch format "x days, 0:00:00") to seconds
 def to_seconds(stopwatch_time):
@@ -15,17 +16,23 @@ def to_seconds(stopwatch_time):
     return seconds + minutes * 60 + hours * 60 * 60 + days * 60 * 60 * 24
 
 f = open(sys.argv[1], 'r')
-reader = csv.DictReader(f, fieldnames = ( "submitted_at", "revision", "os", "jobtype", "uid", "results", "wait_time", "start_time", "finish_time", "elapsed", "work_time" ) )
+reader = csv.DictReader(f)
 
 entries = []
 for row in reader:
+    # ignore results > 30 days old
+    submitted_at = dateutil.parser.parse(row["submitted_at"])
+    if (datetime.datetime.today() - submitted_at).days > 30:
+        continue
+
     entry = {}
+    entry["submitted_at"] = submitted_at.strftime("%Y-%m-%d")
+
     if row["jobtype"] == "talos":
         entry['jobtype'] = "talos"
     else:
         (entry['buildtype'], entry['jobtype']) = row["jobtype"].split(" ")
 
-    entry["submitted_at"] = dateutil.parser.parse(row["submitted_at"]).strftime("%Y-%m-%d")
     entry["work_time"] = to_seconds(row["work_time"])
     entry["wait_time"] = to_seconds(row["wait_time"])
     entry["elapsed"] = to_seconds(row["elapsed"])
