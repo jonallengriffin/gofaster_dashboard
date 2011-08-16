@@ -58,7 +58,7 @@ def get_dates(params, days_apart=7):
 
 #Parse csv into well-formatted JSON -- data for turnaround graph
 def get_build_data():
-    return pickle.load(open(os.path.dirname(os.path.realpath(__file__)) + '/data/buildfaster.pkl', 'r'))
+    return pickle.load(open('data/buildfaster.pkl', 'r'))
 
 #Mochitest handler returns mochitest runtimes on given days and builds
 class MochitestHandler(templeton.handlers.JsonHandler):
