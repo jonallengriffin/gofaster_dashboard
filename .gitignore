@@ -1,2 +1,4 @@
 *.pyc
+server/data/buildfaster.pkl
+server/data/buildfaster.csv
 settings.cfg

@@ -12,6 +12,8 @@ import re
 import templeton
 import web
 import time
+import os.path
+import cPickle as pickle
 
 try:
   import json
@@ -59,21 +61,9 @@ def get_dates(params, days_apart=7):
     enddate = enddate.strftime("%Y-%m-%d")
     return (startdate, enddate)
 
-#Converts datasource formatted time (stopwatch format "x days, 0:00:00") to seconds
-def to_seconds(stopwatch_time):
-    days = 0
-    if str(stopwatch_time).find("day") != -1:
-        days = int(str(stopwatch_time).split(", ")[0].split(" ")[0])
-        stopwatch_time = str(stopwatch_time).split(", ")[1]
-    (hours, minutes, seconds) = map(lambda s: int(s), stopwatch_time.split(":"))
-    return seconds + minutes * 60 + hours * 60 * 60 + days * 60 * 60 * 24
-
 #Parse csv into well-formatted JSON -- data for turnaround graph
-def parse_build_csv():
-    f = open( '../html/data/buildfaster.csv', 'r' )
-    reader = csv.DictReader(f, fieldnames = ( "submitted_at", "revision", "os", "jobtype", "uid", "results", "wait_time", "start_time", "finish_time", "elapsed", "work_time" ) )
-    return [ row for row in reader ]
-
+def get_build_data():
+    return pickle.load(open(os.path.dirname(os.path.realpath(__file__)) + '/data/buildfaster.pkl', 'r'))
 
 #Mochitest handler returns mochitest runtimes on given days and builds
 class MochitestHandler(templeton.handlers.JsonHandler):
@@ -115,22 +105,15 @@ class TurnaroundHandler(templeton.handlers.JsonHandler):
         except:
             pass
 
-        entries = parse_build_csv()
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-
-        for entry in entries:
+        for entry in get_build_data():
             # Skip talos
             if entry["jobtype"] == "talos":
                 continue
 
-            (buildtype, jobtype) = entry["jobtype"].split(" ")
-            datapoint_date = dateutil.parser.parse(entry["submitted_at"]).strftime("%Y-%m-%d")
+            datapoint_date = entry["submitted_at"]
             datapoint_os = entry["os"]
-
-            entry["wait_time"] = to_seconds(entry["wait_time"])
-            entry["elapsed"] = to_seconds(entry["elapsed"])
-
-            datapoint_type = "_".join([buildtype,jobtype])
+            datapoint_type = "%s_%s" % (entry["buildtype"], entry["jobtype"])
             datapoint_counter = datapoint_type + "_counter"
             
             return_data[datapoint_os][datapoint_date][datapoint_type] += entry["wait_time"]
@@ -152,23 +135,19 @@ class ExecutionTimeHandler(templeton.handlers.JsonHandler):
         except:
             show_type = "all"
 
-        entries = parse_build_csv()
-
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-
-        for entry in entries:
+        for entry in get_build_data():
+            # Skip talos
             if entry["jobtype"] == "talos":
                 continue
 
-            (buildtype, jobtype) = entry["jobtype"].split(" ")
-
+            datapoint_date = entry["submitted_at"]
             datapoint_os = entry["os"]
-            datapoint_type = "_".join([buildtype,jobtype])
+            datapoint_type = "%s_%s" % (entry["buildtype"], entry["jobtype"])
             datapoint_counter = datapoint_type + "_counter"
-            datapoint_date = dateutil.parser.parse(entry["submitted_at"]).strftime("%Y-%m-%d")
 
-            if show_type == "all" or show_type==jobtype:
-                return_data[datapoint_os][datapoint_date][datapoint_type] += to_seconds(entry["work_time"])
+            if show_type == "all" or show_type==entry["jobtype"]:
+                return_data[datapoint_os][datapoint_date][datapoint_type] += entry["work_time"]
                 return_data[datapoint_os][datapoint_date][datapoint_counter] += 1
 
         return return_data
@@ -185,26 +164,20 @@ class WaitTimeHandler(templeton.handlers.JsonHandler):
         except:
             show_type = "all"
 
-        entries = parse_build_csv()
-
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-
-        for entry in entries:
+        for entry in get_build_data():
             if entry["jobtype"] == "talos":
                 continue
 
-            (buildtype, jobtype) = entry["jobtype"].split(" ")
-
-            datapoint_date = dateutil.parser.parse(entry["submitted_at"]).strftime("%Y-%m-%d")
+            datapoint_date = entry["submitted_at"]
             datapoint_os = entry["os"]
-            datapoint_type = "_".join([buildtype,jobtype])
+            datapoint_type = "%s_%s" % (entry["buildtype"], entry["jobtype"])
             datapoint_counter = datapoint_type + "_counter"
 
-            if show_type == "all" or show_type==jobtype:
-                return_data[datapoint_os][datapoint_date][datapoint_type] += to_seconds(entry["wait_time"])
+            if show_type == "all" or show_type==entry["jobtype"]:
+                return_data[datapoint_os][datapoint_date][datapoint_type] += entry["wait_time"]
                 return_data[datapoint_os][datapoint_date][datapoint_counter] += 1
 
-        #return json_result
         return return_data
 
 #Overheadhandler returns setup and teardown times for build, test, or combined
@@ -219,23 +192,19 @@ class OverheadHandler(templeton.handlers.JsonHandler):
         except:
             show_type = "all"
 
-        entries = parse_build_csv()
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-
-        for entry in entries:
+        for entry in get_build_data():
             if entry["jobtype"] == "talos":
                 continue
 
-            (buildtype, jobtype) = entry["jobtype"].split(" ")
-
+            datapoint_date = entry["submitted_at"]
             datapoint_os = entry["os"]
-            datapoint_type = "_".join([buildtype,jobtype])
+            datapoint_type = "%s_%s" % (entry["buildtype"], entry["jobtype"])
             datapoint_counter = datapoint_type + "_counter"
-            datapoint_date = dateutil.parser.parse(entry["submitted_at"]).strftime("%Y-%m-%d")
             
-            if show_type == "all" or show_type==jobtype:
+            if show_type == "all" or show_type==entry["jobtype"]:
                 #setup and teardown time is just elapsed_time - work_time
-                s1s2 = to_seconds(entry["elapsed"]) - to_seconds(entry["work_time"])
+                s1s2 = entry["elapsed"] - entry["work_time"]
                 return_data[datapoint_os][datapoint_date][datapoint_type] += s1s2
                 return_data[datapoint_os][datapoint_date][datapoint_counter] += 1
 
