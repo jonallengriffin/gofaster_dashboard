@@ -205,7 +205,7 @@ function show_executiontime(params_type){
                 day = parseDate[2];
 
                 //Calculate datapoint display value
-                dbg_total = divide(data[os][x]["dbg_build"],data[os][x]["dbg_build_counter"]) + divide(data[os][x]["dbg_test"],data[os][x]["dbg_test_counter"]);
+                dbg_total = divide(data[os][x]["debug_build"],data[os][x]["debug_build_counter"]) + divide(data[os][x]["debug_test"],data[os][x]["debug_test_counter"]);
                 opt_total = divide(data[os][x]["opt_build"],data[os][x]["opt_build_counter"]) + divide(data[os][x]["opt_test"],data[os][x]["opt_test_counter"]);
                 value = Math.max(dbg_total,opt_total);
 
@@ -224,10 +224,10 @@ function show_executiontime(params_type){
                         IT SHOULD NEVER GET HERE.
                     */
                     $("#errors").append("Datapoint Date: " + x+"<br/>=======================<br/>");
-                    $("#errors").append("dbg build: " + data[os][x]["dbg_build"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["dbg_build_counter"]+"<br/>");
-                    $("#errors").append("dbg test: " + data[os][x]["dbg_test"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["dbg_test_counter"]+"<br/>");
+                    $("#errors").append("debug build: " + data[os][x]["debug_build"]+"<br/>");
+                    $("#errors").append("" + data[os][x]["debug_build_counter"]+"<br/>");
+                    $("#errors").append("debug test: " + data[os][x]["debug_test"]+"<br/>");
+                    $("#errors").append("" + data[os][x]["debug_test_counter"]+"<br/>");
                     $("#errors").append("opt build: " + data[os][x]["opt_build"]+"<br/>");
                     $("#errors").append("" + data[os][x]["opt_build_counter"]+"<br/>");
                     $("#errors").append("opt test: " + data[os][x]["opt_test"]+"<br/>");
@@ -310,7 +310,7 @@ function show_waittime(params_type){
                 day = parseDate[2];
 
                 //Calculate datapoint display value
-                dbg_total = divide(data[os][x]["dbg_build"],data[os][x]["dbg_build_counter"]) + divide(data[os][x]["dbg_test"],data[os][x]["dbg_test_counter"]);
+                dbg_total = divide(data[os][x]["debug_build"],data[os][x]["debug_build_counter"]) + divide(data[os][x]["debug_test"],data[os][x]["debug_test_counter"]);
                 opt_total = divide(data[os][x]["opt_build"],data[os][x]["opt_build_counter"]) + divide(data[os][x]["opt_test"],data[os][x]["opt_test_counter"]);
                 value = Math.max(dbg_total,opt_total);
 
@@ -329,10 +329,10 @@ function show_waittime(params_type){
                         IT SHOULD NEVER GET HERE.
                     */
                     $("#errors").append("Datapoint Date: " + x+"<br/>=======================<br/>");
-                    $("#errors").append("dbg build: " + data[os][x]["dbg_build"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["dbg_build_counter"]+"<br/>");
-                    $("#errors").append("dbg test: " + data[os][x]["dbg_test"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["dbg_test_counter"]+"<br/>");
+                    $("#errors").append("debug build: " + data[os][x]["debug_build"]+"<br/>");
+                    $("#errors").append("" + data[os][x]["debug_build_counter"]+"<br/>");
+                    $("#errors").append("debug test: " + data[os][x]["debug_test"]+"<br/>");
+                    $("#errors").append("" + data[os][x]["debug_test_counter"]+"<br/>");
                     $("#errors").append("opt build: " + data[os][x]["opt_build"]+"<br/>");
                     $("#errors").append("" + data[os][x]["opt_build_counter"]+"<br/>");
                     $("#errors").append("opt test: " + data[os][x]["opt_test"]+"<br/>");
@@ -415,7 +415,7 @@ function show_overhead(params_type){
                 day = parseDate[2];
 
                 //Calculate datapoint display value
-                dbg_total = divide(data[os][x]["dbg_build"],data[os][x]["dbg_build_counter"]) + divide(data[os][x]["dbg_test"],data[os][x]["dbg_test_counter"]);
+                dbg_total = divide(data[os][x]["debug_build"],data[os][x]["debug_build_counter"]) + divide(data[os][x]["debug_test"],data[os][x]["debug_test_counter"]);
                 opt_total = divide(data[os][x]["opt_build"],data[os][x]["opt_build_counter"]) + divide(data[os][x]["opt_test"],data[os][x]["opt_test_counter"]);
                 value = Math.max(dbg_total,opt_total);
 
@@ -434,10 +434,10 @@ function show_overhead(params_type){
                         IT SHOULD NEVER GET HERE.
                     */
                     $("#errors").append("Datapoint Date: " + x+"<br/>=======================<br/>");
-                    $("#errors").append("dbg build: " + data[os][x]["dbg_build"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["dbg_build_counter"]+"<br/>");
-                    $("#errors").append("dbg test: " + data[os][x]["dbg_test"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["dbg_test_counter"]+"<br/>");
+                    $("#errors").append("debug build: " + data[os][x]["debug_build"]+"<br/>");
+                    $("#errors").append("" + data[os][x]["debug_build_counter"]+"<br/>");
+                    $("#errors").append("debug test: " + data[os][x]["debug_test"]+"<br/>");
+                    $("#errors").append("" + data[os][x]["debug_test_counter"]+"<br/>");
                     $("#errors").append("opt build: " + data[os][x]["opt_build"]+"<br/>");
                     $("#errors").append("" + data[os][x]["opt_build_counter"]+"<br/>");
                     $("#errors").append("opt test: " + data[os][x]["opt_test"]+"<br/>");

@@ -123,7 +123,6 @@ class TurnaroundHandler(templeton.handlers.JsonHandler):
             if entry["jobtype"] == "talos":
                 continue
 
-            # Loop through all entries, calculate averages per day
             (buildtype, jobtype) = entry["jobtype"].split(" ")
             datapoint_date = dateutil.parser.parse(entry["submitted_at"]).strftime("%Y-%m-%d")
             datapoint_os = entry["os"]
@@ -146,6 +145,7 @@ class ExecutionTimeHandler(templeton.handlers.JsonHandler):
         try:
             target_os = params["os"][0]
         except:
+
             target_os = "all"
         try:
             show_type = params["type"][0]
@@ -156,46 +156,21 @@ class ExecutionTimeHandler(templeton.handlers.JsonHandler):
 
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
-        for x in entries:
-            #Loop through all entries, calculate averages per day
-            jobtype = x["jobtype"].split(" ")
-            d = dateutil.parser.parse(x["submitted_at"])
-            datapoint_date = d.strftime("%Y-%m-%d")
-            datapoint_os = x["os"]
+        for entry in entries:
+            if entry["jobtype"] == "talos":
+                continue
 
-            x["work_time"] = to_seconds(x["work_time"])
+            (buildtype, jobtype) = entry["jobtype"].split(" ")
 
-            try:
-                jobtype[1] #Talos will except on this...
-            except:
-                continue;
+            datapoint_os = entry["os"]
+            datapoint_type = "_".join([buildtype,jobtype])
+            datapoint_counter = datapoint_type + "_counter"
+            datapoint_date = dateutil.parser.parse(entry["submitted_at"]).strftime("%Y-%m-%d")
 
-            if jobtype[1] == "test":
-                if(show_type == "all" or show_type == "test"):
-                    if jobtype[0] == "opt":
-                        #tw = wait_time
-                        return_data[datapoint_os][datapoint_date]["opt_test"] += x["work_time"]
-                        #s1+ta+s2 = elapsed_time
-                        return_data[datapoint_os][datapoint_date]["opt_test_counter"] += 1
-                    elif jobtype[0] == "debug":
-                        #bw = wait_time
-                        return_data[datapoint_os][datapoint_date]["dbg_test"] += x["work_time"]
-                        #s1+ba+s2 = elapsed_time
-                        return_data[datapoint_os][datapoint_date]["dbg_test_counter"] += 1
-            elif jobtype[1] == "build":
-                if(show_type == "all" or show_type == "build"):
-                    if jobtype[0] == "opt":
-                        #tw = wait_time
-                        return_data[datapoint_os][datapoint_date]["opt_build"] += x["work_time"]
-                        #s1+ta+s2 = elapsed_time
-                        return_data[datapoint_os][datapoint_date]["opt_build_counter"] += 1
-                    elif jobtype[0] == "debug":
-                        #bw = wait_time
-                        return_data[datapoint_os][datapoint_date]["dbg_build"] += x["work_time"]
-                        #s1+ba+s2 = elapsed_time
-                        return_data[datapoint_os][datapoint_date]["dbg_build_counter"] += 1
+            if show_type == "all" or show_type==jobtype:
+                return_data[datapoint_os][datapoint_date][datapoint_type] += to_seconds(entry["work_time"])
+                return_data[datapoint_os][datapoint_date][datapoint_counter] += 1
 
-        #return json_result
         return return_data
 
 #WaitTime handler returns total test runtime in seconds and the number of tests for each kind
@@ -214,44 +189,20 @@ class WaitTimeHandler(templeton.handlers.JsonHandler):
 
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
-        for x in entries:
-            #Loop through all entries, calculate averages per day
-            jobtype = x["jobtype"].split(" ")
-            d = dateutil.parser.parse(x["submitted_at"])
-            datapoint_date = d.strftime("%Y-%m-%d")
-            datapoint_os = x["os"]
+        for entry in entries:
+            if entry["jobtype"] == "talos":
+                continue
 
-            x["wait_time"] = to_seconds(x["wait_time"])
+            (buildtype, jobtype) = entry["jobtype"].split(" ")
 
-            try:
-                jobtype[1] #Talos will except on this...
-            except:
-                continue;
+            datapoint_date = dateutil.parser.parse(entry["submitted_at"]).strftime("%Y-%m-%d")
+            datapoint_os = entry["os"]
+            datapoint_type = "_".join([buildtype,jobtype])
+            datapoint_counter = datapoint_type + "_counter"
 
-            if jobtype[1] == "test":
-                if(show_type == "all" or show_type == "test"):
-                    if jobtype[0] == "opt":
-                        #tw = wait_time
-                        return_data[datapoint_os][datapoint_date]["opt_test"] += x["wait_time"]
-                        #s1+ta+s2 = elapsed_time
-                        return_data[datapoint_os][datapoint_date]["opt_test_counter"] += 1
-                    elif jobtype[0] == "debug":
-                        #bw = wait_time
-                        return_data[datapoint_os][datapoint_date]["dbg_test"] += x["wait_time"]
-                        #s1+ba+s2 = elapsed_time
-                        return_data[datapoint_os][datapoint_date]["dbg_test_counter"] += 1
-            elif jobtype[1] == "build":
-                if(show_type == "all" or show_type == "build"):
-                    if jobtype[0] == "opt":
-                        #tw = wait_time
-                        return_data[datapoint_os][datapoint_date]["opt_build"] += x["wait_time"]
-                        #s1+ta+s2 = elapsed_time
-                        return_data[datapoint_os][datapoint_date]["opt_build_counter"] += 1
-                    elif jobtype[0] == "debug":
-                        #bw = wait_time
-                        return_data[datapoint_os][datapoint_date]["dbg_build"] += x["wait_time"]
-                        #s1+ba+s2 = elapsed_time
-                        return_data[datapoint_os][datapoint_date]["dbg_build_counter"] += 1
+            if show_type == "all" or show_type==jobtype:
+                return_data[datapoint_os][datapoint_date][datapoint_type] += to_seconds(entry["wait_time"])
+                return_data[datapoint_os][datapoint_date][datapoint_counter] += 1
 
         #return json_result
         return return_data
@@ -271,47 +222,23 @@ class OverheadHandler(templeton.handlers.JsonHandler):
         entries = parse_build_csv()
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
-        for x in entries:
-            #Loop through all entries, calculate averages per day
-            jobtype = x["jobtype"].split(" ")
-            d = dateutil.parser.parse(x["submitted_at"])
-            datapoint_date = d.strftime("%Y-%m-%d")
-            datapoint_os = x["os"]
+        for entry in entries:
+            if entry["jobtype"] == "talos":
+                continue
 
-            #setup and teardown time is just elapsed_time - work_time
-            s1s2 = to_seconds(x["elapsed"]) - to_seconds(x["work_time"])
+            (buildtype, jobtype) = entry["jobtype"].split(" ")
 
-            try:
-                jobtype[1] #Talos will except on this...
-            except:
-                continue;
+            datapoint_os = entry["os"]
+            datapoint_type = "_".join([buildtype,jobtype])
+            datapoint_counter = datapoint_type + "_counter"
+            datapoint_date = dateutil.parser.parse(entry["submitted_at"]).strftime("%Y-%m-%d")
+            
+            if show_type == "all" or show_type==jobtype:
+                #setup and teardown time is just elapsed_time - work_time
+                s1s2 = to_seconds(entry["elapsed"]) - to_seconds(entry["work_time"])
+                return_data[datapoint_os][datapoint_date][datapoint_type] += s1s2
+                return_data[datapoint_os][datapoint_date][datapoint_counter] += 1
 
-            if jobtype[1] == "test":
-                if(show_type == "all" or show_type == "test"):
-                    if jobtype[0] == "opt":
-                        #tw = wait_time
-                        return_data[datapoint_os][datapoint_date]["opt_test"] += s1s2
-                        #s1+ta+s2 = elapsed_time
-                        return_data[datapoint_os][datapoint_date]["opt_test_counter"] += 1
-                    elif jobtype[0] == "debug":
-                        #bw = wait_time
-                        return_data[datapoint_os][datapoint_date]["dbg_test"] += s1s2
-                        #s1+ba+s2 = elapsed_time
-                        return_data[datapoint_os][datapoint_date]["dbg_test_counter"] += 1
-            elif jobtype[1] == "build":
-                if(show_type == "all" or show_type == "build"):
-                    if jobtype[0] == "opt":
-                        #tw = wait_time
-                        return_data[datapoint_os][datapoint_date]["opt_build"] += s1s2
-                        #s1+ta+s2 = elapsed_time
-                        return_data[datapoint_os][datapoint_date]["opt_build_counter"] += 1
-                    elif jobtype[0] == "debug":
-                        #bw = wait_time
-                        return_data[datapoint_os][datapoint_date]["dbg_build"] += s1s2
-                        #s1+ba+s2 = elapsed_time
-                        return_data[datapoint_os][datapoint_date]["dbg_build_counter"] += 1
-
-        #return json_result
         return return_data
 
 #Example non-json Handler
