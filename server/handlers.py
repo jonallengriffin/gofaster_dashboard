@@ -61,18 +61,12 @@ def get_dates(params, days_apart=7):
 
 #Converts datasource formatted time (stopwatch format "x days, 0:00:00") to seconds
 def to_seconds(stopwatch_time):
+    days = 0
     if str(stopwatch_time).find("day") != -1:
-        days = str(stopwatch_time).split(", ")[0].split(" ")[0]
-        days = int(days)
+        days = int(str(stopwatch_time).split(", ")[0].split(" ")[0])
         stopwatch_time = str(stopwatch_time).split(", ")[1]
-    else:
-        days = 0
-    split_time = str(stopwatch_time).split(":")
-    hours = int(split_time[0])
-    minutes = int(split_time[1])
-    seconds = int(split_time[2])
-    total_seconds = seconds + minutes * 60 + hours * 60 * 60 + days * 60 * 60 * 24
-    return int(total_seconds)
+    (hours, minutes, seconds) = map(lambda s: int(s), stopwatch_time.split(":"))
+    return seconds + minutes * 60 + hours * 60 * 60 + days * 60 * 60 * 24
 
 #Parse csv into well-formatted JSON -- data for turnaround graph
 def parse_build_csv():
