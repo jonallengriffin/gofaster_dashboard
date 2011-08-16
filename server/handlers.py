@@ -14,6 +14,7 @@ import web
 import time
 import os.path
 import cPickle as pickle
+import stat
 
 config = ConfigParser.ConfigParser()
 config.read("settings.cfg")
@@ -57,8 +58,17 @@ def get_dates(params, days_apart=7):
     return (startdate, enddate)
 
 #Parse csv into well-formatted JSON -- data for turnaround graph
+last_parsed_buildfaster_data = None
+buildfaster_data = None
 def get_build_data():
-    return pickle.load(open('data/buildfaster.pkl', 'r'))
+    global last_parsed_buildfaster_data
+    global buildfaster_data
+    fname = 'data/buildfaster.pkl'
+    mtime = os.stat(fname)[stat.ST_MTIME]
+    if last_parsed_buildfaster_data != mtime:
+        buildfaster_data = pickle.load(open(fname, 'r'))
+        last_parsed_buildfaster_data = mtime
+    return buildfaster_data
 
 #Mochitest handler returns mochitest runtimes on given days and builds
 class MochitestHandler(templeton.handlers.JsonHandler):
