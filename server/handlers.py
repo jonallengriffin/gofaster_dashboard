@@ -101,7 +101,7 @@ class MochitestHandler(templeton.handlers.JsonHandler):
         result = eslib.query(args)
         return result
 
-#Turnaround handler returns total test runtime in seconds and the number of tests for each kind
+#Turnaround handler returns total build+test runtime in seconds and the number of tests for each kind
 class TurnaroundHandler(templeton.handlers.JsonHandler):
     def _GET(self, params, body):
         target_os = "all"
@@ -118,6 +118,8 @@ class TurnaroundHandler(templeton.handlers.JsonHandler):
 
             datapoint_date = entry["submitted_at"]
             datapoint_os = entry["os"]
+            if datapoint_os == "win7" or datapoint_os == "winxp":                
+                datapoint_os = "win32" # for overall time, win7/winxp tests are win32 datapoints
             datapoint_type = "%s_%s" % (entry["buildtype"], entry["jobtype"])
             datapoint_counter = datapoint_type + "_counter"
             

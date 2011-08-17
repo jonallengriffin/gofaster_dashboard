@@ -145,7 +145,7 @@ function show_turnaround(){
                     type: 'spline'
                 },
                 title: {
-                    text: 'Go Faster! - Build and Test Turnaround'
+                    text: 'Go Faster! - Overall Build and Test Turnaround'
                 },
                 subtitle: {
                     text: ''
