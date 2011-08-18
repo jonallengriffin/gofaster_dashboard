@@ -44,6 +44,11 @@ a{
     color:#090909;
     text-decoration:none;
 }
+
+#result a {
+    color:#00F;
+}
+
 a:hover{
     color:#000;
     border-bottom:#000 1px solid;
