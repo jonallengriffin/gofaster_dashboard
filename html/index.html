@@ -13,26 +13,31 @@
         <div id="floatwrapper">
         <div id="leftcontent">
             <a href="/"><div id="logolink"></div></a>
-            <h2>View Metrics</h2>
-                <ul>
-                    <li><a href="#" onclick="show_turnaround()">Overall Build and Test Turnaround</a></li>
-                    <li><a href="#" onclick="show_executiontime('build')">Avg Build Time</a></li>
-                    <li><a href="#" onclick="show_executiontime('test')">Avg Test Time</a></li>
-                    <li><a href="#" onclick="show_waittime('build')">Build Machine Wait</a></li>
-                    <li><a href="#" onclick="show_waittime('test')">Test Machine Wait</a></li>
-                    <li><a href="#" onclick="show_overhead('build')">Build Setup & Teardown</a></li>
-                    <li><a href="#" onclick="show_overhead('test')">Test Setup & Teardown</a></li>
-                    <!--li><a href="#" onclick="show_mochitests()">Top 10 Slowest Mochitests</a></li-->
-                </ul>
+            <h2>Metrics</h2>
+            <ul>
+              <li><a href="#" onclick="show_turnaround()">Overall Build & Test Turnaround</a></li>
+              <li><a href="#" onclick="show_executiontime('build')">Avg Build Time</a></li>
+              <li><a href="#" onclick="show_executiontime('test')">Avg Test Time</a></li>
+              <li><a href="#" onclick="show_waittime('build')">Build Machine Wait</a></li>
+              <li><a href="#" onclick="show_waittime('test')">Test Machine Wait</a></li>
+              <li><a href="#" onclick="show_overhead('build')">Build Setup & Teardown</a></li>
+              <li><a href="#" onclick="show_overhead('test')">Test Setup & Teardown</a></li>
+              <!--li><a href="#" onclick="show_mochitests()">Top 10 Slowest Mochitests</a></li-->
+            </ul>
+            <br/>
+            <h2>Tools</h2>
+            <ul>
+              <li><a href="#" onclick="show_isthisbuildfaster()">Is This Build Faster?</a></li>
+            </ul>
         </div>
         <div id="rightcontent">
             <div id="result" >
 
                 <h3>Welcome to Mozilla's GoFaster dashboard!</h3>
-                <br/>
-                <p>Here you can find relevant displays for build and test metrics. For more 
+                <br/>                <p>Here you can find relevant displays for build and test metrics. For more 
                   information on GoFaster (also known as "BuildFaster") see the
                   <a href="https://wiki.mozilla.org/ReleaseEngineering/BuildFaster">wiki page</a>.</p>
+
             </div>
             <div id="errors"></div>
             <div id="container"></div>
@@ -42,8 +47,48 @@
     </div>
 
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script src="js/ICanHaz.min.js"></script>
     <script src="js/highcharts.js"></script>
     <script src="js/modules/exporting.js"></script>
     <script src="js/graphs.js"></script>
+
+    <script id="itbf_header" class="partial" type="text/html">
+        <h3>Is this build faster?</h3>
+        <br/>
+    </script>
+
+    <script id="itbf_form" type="text/html">
+      <div id="result">
+        {{>itbf_header}}
+        <p>This tool will compare the test times for your tree/revision against a recent 
+          mozilla-central build. Results will be delivered to your email address.</p>
+        <br/>
+        <form id="itbf_form" method="post">
+          <p><label>Tree:</label><input id="tree" type="text" required></p>
+          <p><label>Compare revision:</label><input id="revision" type="text" required></p>
+          <p><label>Committer email:</label><input id="submitter_email" type="email" required></p>
+          <p><label>Your email:</label><input id="return_email" type="email" required></p>
+          <br/>
+          <input type="submit" id="add-itbf-job" value="Submit" />
+        </form>
+      </div>
+    </script>
+
+    <script id="itbf_submitted" type="text/html">
+      <div id="result">
+        {{>itbf_header}}
+        <p>Thanks for submitting your request! It generally takes a few minutes to process these, so please be a bit patient. 
+          I hope the results will prove worth the wait. There are now {{ num_itbf_jobs }} requests pending (including yours).</p>
+        <br/>
+        <p><a href="#" onclick="show_isthisbuildfaster()">Submit another?</a></p>
+      </div>
+    </script>
+
+    <script id="itbf_error" type="text/html">
+      <div id="result">
+        {{>itbf_header}}
+        <p>Oh noes! There was an error processing your request. Please <a href="http://https://wiki.mozilla.org/Auto-tools">let us know</a> that this happened.</p>
+      </div>
+    </script>
 </body>
 </html>

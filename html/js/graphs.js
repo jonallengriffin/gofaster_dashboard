@@ -639,3 +639,34 @@ function show_mochitests(params_os, params_buildtype){
 
     }); //End $.getJSON()
 } //End show_mochitests
+
+function show_isthisbuildfaster() {
+  show_loading();
+  $.getJSON("api/itbf/jobs/", function(data) {
+
+    hide_loading();
+
+    $('#result').replaceWith(ich.itbf_form({ num_itbf_jobs: data['num_pending_jobs'] }));
+    $("form#itbf_form").submit(function() {   
+      $.ajax({
+        type: 'POST',
+        url: "api/itbf/jobs/",
+        data: { 'tree': $('#tree').val(),
+                'revision': $('#revision').val(),
+                'submitter_email': $('#submitter_email').val(),
+                'return_email': $('#return_email').val()
+              },
+        success: function(data) {
+          $('#result').replaceWith(ich.itbf_submitted({ num_itbf_jobs: data['num_pending_jobs'] }));
+        },
+        error: function(obj, textStatus, errorThrown) {
+          $('#result').replaceWith(ich.itbf_error());
+        },
+        dataType: 'json'
+      });
+      
+      return false;
+    });
+  });
+
+}

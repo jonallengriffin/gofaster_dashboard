@@ -15,6 +15,7 @@ import time
 import os.path
 import cPickle as pickle
 import stat
+import itbf.queue
 
 config = ConfigParser.ConfigParser()
 config.read("settings.cfg")
@@ -217,6 +218,24 @@ class OverheadHandler(templeton.handlers.JsonHandler):
 
         return return_data
 
+class IsThisBuildFasterJobsHandler(templeton.handlers.JsonHandler):
+    def _GET(self, params, body):
+        return { 'num_pending_jobs': len(itbf.queue.get_copy()) }
+
+    @templeton.handlers.get_json
+    def POST(self):
+        postdata = web.input()
+
+        if len(itbf.queue.get_copy()) > 100:
+            # defend against people flooding the queue
+            errmsg = "Too many jobs! Geez."
+            web.internalerror(message=errmsg)
+            return { 'error': errmsg }
+
+        itbf.queue.append_job(postdata['tree'], postdata['revision'], 
+                              postdata['submitter_email'], postdata['return_email'])
+        return { 'num_pending_jobs': len(itbf.queue.get_copy()) }
+
 #Example non-json Handler
 class Test:
     def GET(self):
@@ -229,6 +248,7 @@ urls = (
   '/waittime/?', "WaitTimeHandler",
   '/overhead/?', "OverheadHandler",
   '/executiontime/?', "ExecutionTimeHandler",
+  '/itbf/jobs/?', "IsThisBuildFasterJobsHandler",
 
   #Keeping this for example purposes
   '/test/?', "Test"

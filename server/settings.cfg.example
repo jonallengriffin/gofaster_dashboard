@@ -2,3 +2,13 @@
 ES_SERVER=
 INDEX=
 TYPE=
+
+[email]
+username = automation@mozilla.com
+server = mail
+port = 25
+ssl = off
+
+[gofaster]
+local_server_url = http://localhost:8080
+external_server_url = http://brasstacks.mozilla.com/gofaster
