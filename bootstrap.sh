@@ -34,7 +34,7 @@ for I in add-job process-next-job show-pending-jobs clear-jobs; do
 PYTHON=\$(dirname \$0)/python
 SCRIPT_DIR=\$(dirname \$0)/../src/dashboard/server/itbf
 
-\$PYTHON \$SCRIPT_DIR/$I.py
+exec \$PYTHON \$SCRIPT_DIR/$I.py \$@
 EOF
     chmod a+x $SCRIPT
 done
