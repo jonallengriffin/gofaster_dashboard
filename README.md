@@ -17,6 +17,12 @@ up and running)
 
     cd src/dashboard/server && cp settings.cfg.example settings.cfg && cd ../../../
 
+To run the server in test mode, do the following:
+
+    cd src/dashboard/server && ../../../bin/python server.py
+
+<FIXME: Describe how to deploy server>
+
 # Credits / Acknowledgements
 
 * HTML templating done using the ICanHaz library (http://icanhazjs.com/)
