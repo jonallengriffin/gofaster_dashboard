@@ -86,8 +86,7 @@ def main():
     #import json
     #data = json.loads(open('/home/wlach/src/gofaster/isthisbuildfaster.json', 'r').read())
 
-    revision_names = map(lambda r: '%s %s' % (r['tree'], r['revision']), 
-                         data['revisions'])
+    revision_names = [ 'mozilla central', '%s %s' % (job['tree'], job['revision']) ]
 
     resultbody = ""
     for (platform_name, platform) in data["durations"].iteritems():

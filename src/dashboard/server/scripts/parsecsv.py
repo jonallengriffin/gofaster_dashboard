@@ -21,7 +21,7 @@ reader = csv.DictReader(f)
 entries = []
 for row in reader:
     # ignore results > 30 days old
-    submitted_at = dateutil.parser.parse(row["submitted_at"])
+    submitted_at = dateutil.parser.parse(unicode(row["submitted_at"]))
     if (datetime.datetime.today() - submitted_at).days > 30:
         continue
 

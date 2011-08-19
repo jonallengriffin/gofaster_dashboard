@@ -1,4 +1,11 @@
 *.pyc
-server/data/buildfaster.pkl
-server/data/buildfaster.csv
-settings.cfg
+include/
+bin/
+lib/
+src/dashboard/server/data/buildfaster.pkl
+src/dashboard/server/data/buildfaster-queue.pkl
+src/dashboard/server/data/buildfaster.csv
+src/dashboard/server/settings.cfg
+src/isthisbuildfaster/
+src/mozautoeslib/
+src/mozautolog/
