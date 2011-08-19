@@ -1,7 +1,7 @@
 #!/bin/sh
 
 PYPI_DEPS=" \
-BeautifulSoup \
+BeautifulSoup==3.2.0 \
 Tempita \
 configparser \
 python_dateutil==1.5 \
