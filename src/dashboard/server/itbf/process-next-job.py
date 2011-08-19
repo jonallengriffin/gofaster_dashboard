@@ -11,8 +11,10 @@ from sendemail import SendEmail
 import queue
 import os
 
-email_tmpl = '''Is this build faster?
-Report for revision {{revision_names[0]}} vs {{revision_names[1]}} (your revision)
+email_tmpl = '''We compared '{{revision}}' against the following revisions of mozilla-central:
+{{for r in compare_revisions}}
+{{r}}
+{{endfor}}
 
 {{resultbody}}
 
@@ -84,35 +86,56 @@ def main():
                                                     job['revision'], 
                                                     job['submitter'])
     #import json
-    #data = json.loads(open('/home/wlach/src/gofaster/isthisbuildfaster.json', 'r').read())
+    #data = json.loads(open('/home/wlach/src/gofaster/isthisbuildfaster2.json', 'r').read())
 
-    revision_names = [ 'mozilla central', '%s %s' % (job['tree'], job['revision']) ]
+    revision = '%s %s' % (job['tree'], job['revision'])
+    mozilla_central_revisions = data['revisions'][0]['revision']
 
+    notable_results = []
     resultbody = ""
+
     for (platform_name, platform) in data["durations"].iteritems():
         resultlines = []
-        for (test_name, test) in sorted(platform.iteritems(), key=lambda t: t[1][2]):
-            # ignore results with -1 (indicate test was not run there)
-            if test[1] != (-1) and test[2] != (-1):
-                resultlines.append(",".join([test_name]+map(lambda v: str(v), test)))
-        if len(resultlines) == 0:
-            resultbody += "No comparative results for %s\n" % platform_name
-        else:
-            resultbody += "Results for %s\n" % platform_name
-        resultbody += "Suite, %s, %s, diff (seconds)\n" % (revision_names[0], revision_names[1])
+        for (test_name, test) in sorted(platform.iteritems(), key=lambda t: t[0]):
+            diff = test['mean'] - test['testtime']
+            resultlines.append(", ".join(str(i) for i in ([test_name, test['mean'], test['testtime'], diff])))
+            if abs(test['testtime']-test['mean']) > 2*test['stdev']:
+                notable_results.append({ 'platform': platform_name, 
+                                         'test': test_name, 
+                                         'testtime': test['testtime'],
+                                         'mean': test['mean'],
+                                         'stdev': test['stdev'],
+                                         'diff': diff })
+                               
+        resultbody += "Results for %s\n" % platform_name
+        resultbody += "Suite, Mean result, %s, diff (seconds)\n" % revision
         resultbody += "\n".join(resultlines) + "\n\n"
 
+    if len(notable_results) > 0:
+        notable_text = "Notable results (> 2* faster/slower than standard deviation)\n"
+        notable_text += "Platform, Suite, %s, Mean, stdev, diff (seconds)\n" % revision
+        for notable_result in sorted(notable_results, key=lambda r: r['test'] + (r['platform']*10)):
+            notable_text += ', '.join( str(i) for i in [ notable_result['platform'], 
+                                                         notable_result['test'], 
+                                                         notable_result['testtime'], 
+                                                         notable_result['mean'], 
+                                                         notable_result['stdev'],
+                                                         notable_result['diff'] ])
+            notable_text += '\n'
+    resultbody = notable_text + '\n' + resultbody
+
+    subject = 'Is this build faster? Results for %s' % revision
     tmpl = tempita.Template(email_tmpl)
-    text = tmpl.substitute({'revision_names': revision_names, 
+    text = tmpl.substitute({'subject': subject,
+                            'revision': revision,
+                            'compare_revisions': mozilla_central_revisions,
                             'exturl': external_server_url,
                             'resultbody': resultbody})
-    subject = 'Is this build faster? Results for %s vs. %s' % (revision_names[0], 
-                                                               revision_names[1])
     to = [ job['return_email'] ]
 
     if options.test_mode:
         print 'From: %s' % mail_username
-        print 'To: %s' % to
+        print 'To: %s' % " ".join(to)
         print 'Subject: %s' % subject
         print
         print text
