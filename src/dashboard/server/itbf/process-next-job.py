@@ -16,7 +16,22 @@ email_tmpl = '''We compared '{{revision}}' against the following revisions of mo
 {{r}}
 {{endfor}}
 
-{{resultbody}}
+Summary of results
+------------------
+
+Total test time for '{{revision}}': {{testtime}}
+Mean total test time of last 10 revisions: {{last10_mean}}
+Standard deviation of last 10 revisions: {{last10_stdev}}
+
+Notable Results (> 2* faster/slower than standard deviation)
+------------------------------------------------------------
+
+{{notableresults}}
+
+All Results
+-----------
+
+{{allresults}}
 
 Visit the gofaster dashboard at {{exturl}}/
 
@@ -92,8 +107,7 @@ def main():
     mozilla_central_revisions = data['revisions'][0]['revision']
 
     notable_results = []
-    resultbody = ""
-
+    allresults_text = ""
     for (platform_name, platform) in data["durations"].iteritems():
         resultlines = []
         for (test_name, test) in sorted(platform.iteritems(), key=lambda t: t[0]):
@@ -107,30 +121,35 @@ def main():
                                          'stdev': test['stdev'],
                                          'diff': diff })
                                
-        resultbody += "Results for %s\n" % platform_name
-        resultbody += "Suite, Mean result, %s, diff (seconds)\n" % revision
-        resultbody += "\n".join(resultlines) + "\n\n"
+        allresults_text += "Results for %s\n" % platform_name
+        allresults_text += "Suite, Mean result, %s, diff (seconds)\n" % revision
+        allresults_text += "\n".join(resultlines)
 
+    notable_text=""
     if len(notable_results) > 0:
-        notable_text = "Notable results (> 2* faster/slower than standard deviation)\n"
-        notable_text += "Platform, Suite, %s, Mean, stdev, diff (seconds)\n" % revision
+        notable_text += "Platform, Suite, %s, Mean, stdev, diff (seconds)" % revision
         for notable_result in sorted(notable_results, key=lambda r: r['test'] + (r['platform']*10)):
+            notable_text += '\n'
             notable_text += ', '.join( str(i) for i in [ notable_result['platform'], 
                                                          notable_result['test'], 
                                                          notable_result['testtime'], 
                                                          notable_result['mean'], 
                                                          notable_result['stdev'],
                                                          notable_result['diff'] ])
-            notable_text += '\n'
-    resultbody = notable_text + '\n' + resultbody
+    else:
+        notable_text = "No notable results"
 
     subject = 'Is this build faster? Results for %s' % revision
     tmpl = tempita.Template(email_tmpl)
     text = tmpl.substitute({'subject': subject,
                             'revision': revision,
                             'compare_revisions': mozilla_central_revisions,
+                            'testtime': data['totals']['testtime'],
+                            'last10_mean': data['totals']['mean'],
+                            'last10_stdev': data['totals']['stdev'],                           
                             'exturl': external_server_url,
-                            'resultbody': resultbody})
+                            'notableresults': notable_text,
+                            'allresults': allresults_text})
     to = [ job['return_email'] ]
 
     if options.test_mode:
