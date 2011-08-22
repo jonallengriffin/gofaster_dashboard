@@ -236,11 +236,6 @@ class IsThisBuildFasterJobsHandler(templeton.handlers.JsonHandler):
                               postdata['submitter_email'], postdata['return_email'])
         return { 'num_pending_jobs': len(itbf.queue.get_copy()) }
 
-#Example non-json Handler
-class Test:
-    def GET(self):
-        return render.test('treebark')
-
 # URLs go here. "/api/" will be automatically prepended to each.
 urls = (
   '/mochitest/?', "MochitestHandler",
@@ -249,7 +244,4 @@ urls = (
   '/overhead/?', "OverheadHandler",
   '/executiontime/?', "ExecutionTimeHandler",
   '/itbf/jobs/?', "IsThisBuildFasterJobsHandler",
-
-  #Keeping this for example purposes
-  '/test/?', "Test"
 )
