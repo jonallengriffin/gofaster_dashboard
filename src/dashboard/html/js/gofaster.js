@@ -70,6 +70,15 @@ function divide(dividend, divisor){
     return 0;
 }
 
+function parseDate(datestr) {
+  var parsed = datestr.split("-");
+  var year = parsed[0];
+  var month = parsed[1] - 1; //Javascript months index from 0 instead of 1
+  var day = parsed[2];
+
+  return Date.UTC(year, month, day)
+}
+
 function to_hours(value){
     //Convert a time from seconds to hours to two decimal places
     return Math.round(value * 100 / 60 / 60) / 100;
@@ -77,103 +86,57 @@ function to_hours(value){
 
 //Each function below represents a graph to be displayed
 
-function show_turnaround(){
-    //Build and Test Turnaround Dashboard
-    show_loading(); //Show loading div to keep user happy
+function show_turnaround(type) {
+  //Build and Test Turnaround Dashboard
+  show_loading(); //Show loading div to keep user happy
+  
+  //Request data from api/turnaround and do stuff
+  $.getJSON('api/turnaround', function(data) {
 
-    //Request data from api/turnaround and do stuff
-    $.getJSON('api/turnaround', function(data) {
-        graph_data = [];
+    //Loading is complete!
+    hide_loading();
+    
+    if (type === "total") {
+      $('#result').append("<h3>Go Faster! - Overall Build & Test Turnaround</h3><br/>");
 
-        //Group data by OS
-        for (os in data){
+      //Group data by OS
+      var graph_data = Object.keys(data).map(function(os) {
+        //Save each series into a set for display on the chart
+        var series = {};
+        series.label = os;
+        series.data = Object.keys(data[os]).map(function(datestr) {
+          //Calculate datapoint display value
+          var dbg_total = divide(data[os][datestr]["debug_build"],
+                                 data[os][datestr]["debug_build_counter"]) + 
+            divide(data[os][datestr]["debug_test"],
+                   data[os][datestr]["debug_test_counter"]);
+          
+          var opt_total = divide(data[os][datestr]["opt_build"], 
+                                 data[os][datestr]["opt_build_counter"]) + 
+            divide(data[os][datestr]["opt_test"],
+                   data[os][datestr]["opt_test_counter"]);
+          
+          return [parseDate(datestr), to_hours(Math.max(dbg_total, opt_total))];        
+        }).sort(function(a,b) { return a[0]-b[0]; });
+        
+        return series;
+      });
 
-            //Save each series into a set for display on the chart
-            series = {};
-            series.name = os;
-            series.data = []
-            for(x in data[os]){
-                //Split apart timestamps for conversion into UTC time for chart
-                parseDate = x.split("-");
-                year = parseDate[0];
-                month = parseDate[1] - 1; //Javascript months index from 0 instead of 1
-                day = parseDate[2];
-
-                //Calculate datapoint display value
-                dbg_total = divide(data[os][x]["debug_build"],data[os][x]["debug_build_counter"]) + divide(data[os][x]["debug_test"],data[os][x]["debug_test_counter"]);
-                opt_total = divide(data[os][x]["opt_build"],data[os][x]["opt_build_counter"]) + divide(data[os][x]["opt_test"],data[os][x]["opt_test_counter"]);
-                value = Math.max(dbg_total,opt_total);
-
-                if (!isNaN(value)){
-                    //Convert from seconds to hours
-                    value = to_hours(value);
-
-                    //Form datapoint
-                    datapoint = [Date.UTC(year, month, day), value];
-
-                    //Push datapoint to the series
-                    series['data'].push(datapoint);
-                }else{
-                    /*
-                        DEBUG.
-                        IT SHOULD NEVER GET HERE.
-                    */
-                    $("#errors").append("Datapoint Date: " + x+"<br/>=======================<br/>");
-                    $("#errors").append("dbg build: " + data[os][x]["debug_build"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["debug_build_counter"]+"<br/>");
-                    $("#errors").append("dbg test: " + data[os][x]["debug_test"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["debug_test_counter"]+"<br/>");
-                    $("#errors").append("opt build: " + data[os][x]["opt_build"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["opt_build_counter"]+"<br/>");
-                    $("#errors").append("opt test: " + data[os][x]["opt_test"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["opt_test_counter"]+"<br/><br/>");
-                }
-
-            }
-            //Push each completed series to the overall dataset
-            graph_data.push(series);
+      $.plot($("#container"), graph_data, {
+        xaxis: {
+          mode: "time"
+        },
+        yaxis: {
+          axisLabel: 'Average Turnaround Time (Hours)'
+        },
+        series: {
+          lines: { show: true, fill: false, steps: false }
         }
-        //Loading is complete!
-        hide_loading();
+      });
 
-        //Begin Line Chart
-        var chart;
-        jQuery(document).ready(function() {
-            chart = new Highcharts.Chart({
-                chart: {
-                    renderTo: 'container',
-                    type: 'spline'
-                },
-                title: {
-                    text: 'Go Faster! - Overall Build and Test Turnaround'
-                },
-                subtitle: {
-                    text: ''
-                },
-                xAxis: {
-                    type: 'datetime',
-                    dateTimeLabelFormats: { // don't display the dummy year
-                        month: '%b %e',
-                        year: '%Y'
-                    }
-                },
-                yAxis: {
-                    title: {
-                        text: 'Average Turnaround Time (Hours)'
-                    },
-                    min: 0
-                },
-                tooltip: {
-                    formatter: function() {
-                            return '<b>'+ this.series.name +'</b><br/>'+
-                            Highcharts.dateFormat('%b %e, %Y', this.x) +': '+ this.y +' hours';
-                    }
-                },
-                series: graph_data
-            });
-        });
-        //End Line Chart
-    }); //End $.getJSON
+    } else { // type == components
+    }
+  });  
 }
 
 function show_executiontime(params_type){
@@ -197,43 +160,21 @@ function show_executiontime(params_type){
             series = {};
             series.name = os;
             series.data = []
-            for(x in data[os]){
-                //Split apart timestamps for conversion into UTC time for chart
-                parseDate = x.split("-");
-                year = parseDate[0];
-                month = parseDate[1] - 1; //Javascript months index from 0 instead of 1
-                day = parseDate[2];
+            for(datestr in data[os]){
 
                 //Calculate datapoint display value
-                dbg_total = divide(data[os][x]["debug_build"],data[os][x]["debug_build_counter"]) + divide(data[os][x]["debug_test"],data[os][x]["debug_test_counter"]);
-                opt_total = divide(data[os][x]["opt_build"],data[os][x]["opt_build_counter"]) + divide(data[os][x]["opt_test"],data[os][x]["opt_test_counter"]);
+                dbg_total = divide(data[os][datestr]["debug_build"],data[os][datestr]["debug_build_counter"]) + divide(data[os][datestr]["debug_test"],data[os][datestr]["debug_test_counter"]);
+                opt_total = divide(data[os][datestr]["opt_build"],data[os][datestr]["opt_build_counter"]) + divide(data[os][datestr]["opt_test"],data[os][datestr]["opt_test_counter"]);
                 value = Math.max(dbg_total,opt_total);
 
-                if (!isNaN(value)){
-                    //Convert from seconds to hours
-                    value = to_hours(value);
-
-                    //Form datapoint
-                    datapoint = [Date.UTC(year, month, day), value];
-
-                    //Push datapoint to the series
-                    series['data'].push(datapoint);
-                }else{
-                    /*
-                        DEBUG.
-                        IT SHOULD NEVER GET HERE.
-                    */
-                    $("#errors").append("Datapoint Date: " + x+"<br/>=======================<br/>");
-                    $("#errors").append("debug build: " + data[os][x]["debug_build"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["debug_build_counter"]+"<br/>");
-                    $("#errors").append("debug test: " + data[os][x]["debug_test"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["debug_test_counter"]+"<br/>");
-                    $("#errors").append("opt build: " + data[os][x]["opt_build"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["opt_build_counter"]+"<br/>");
-                    $("#errors").append("opt test: " + data[os][x]["opt_test"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["opt_test_counter"]+"<br/><br/>");
-                }
-
+              //Convert from seconds to hours
+              value = to_hours(value);
+              
+              //Form datapoint
+              datapoint = [parseDate(datestr), value];
+              
+              //Push datapoint to the series
+              series['data'].push(datapoint);
             }
             //Push each completed series to the overall dataset
             graph_data.push(series);
@@ -302,43 +243,20 @@ function show_waittime(params_type){
             series = {};
             series.name = os;
             series.data = []
-            for(x in data[os]){
-                //Split apart timestamps for conversion into UTC time for chart
-                parseDate = x.split("-");
-                year = parseDate[0];
-                month = parseDate[1] - 1; //Javascript months index from 0 instead of 1
-                day = parseDate[2];
-
-                //Calculate datapoint display value
-                dbg_total = divide(data[os][x]["debug_build"],data[os][x]["debug_build_counter"]) + divide(data[os][x]["debug_test"],data[os][x]["debug_test_counter"]);
-                opt_total = divide(data[os][x]["opt_build"],data[os][x]["opt_build_counter"]) + divide(data[os][x]["opt_test"],data[os][x]["opt_test_counter"]);
-                value = Math.max(dbg_total,opt_total);
-
-                if (!isNaN(value)){
-                    //Convert from seconds to hours
-                    value = to_hours(value);
-
-                    //Form datapoint
-                    datapoint = [Date.UTC(year, month, day), value];
-
-                    //Push datapoint to the series
-                    series['data'].push(datapoint);
-                }else{
-                    /*
-                        DEBUG.
-                        IT SHOULD NEVER GET HERE.
-                    */
-                    $("#errors").append("Datapoint Date: " + x+"<br/>=======================<br/>");
-                    $("#errors").append("debug build: " + data[os][x]["debug_build"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["debug_build_counter"]+"<br/>");
-                    $("#errors").append("debug test: " + data[os][x]["debug_test"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["debug_test_counter"]+"<br/>");
-                    $("#errors").append("opt build: " + data[os][x]["opt_build"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["opt_build_counter"]+"<br/>");
-                    $("#errors").append("opt test: " + data[os][x]["opt_test"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["opt_test_counter"]+"<br/><br/>");
-                }
-
+            for(datestr in data[os]){
+              //Calculate datapoint display value
+              dbg_total = divide(data[os][datestr]["debug_build"],data[os][datestr]["debug_build_counter"]) + divide(data[os][datestr]["debug_test"],data[os][datestr]["debug_test_counter"]);
+              opt_total = divide(data[os][datestr]["opt_build"],data[os][datestr]["opt_build_counter"]) + divide(data[os][datestr]["opt_test"],data[os][datestr]["opt_test_counter"]);
+              value = Math.max(dbg_total,opt_total);
+              
+              //Convert from seconds to hours
+              value = to_hours(value);
+              
+              //Form datapoint
+              datapoint = [parseDate(datestr), value];
+              
+              //Push datapoint to the series
+              series['data'].push(datapoint);
             }
             //Push each completed series to the overall dataset
             graph_data.push(series);
@@ -407,43 +325,20 @@ function show_overhead(params_type){
             series = {};
             series.name = os;
             series.data = []
-            for(x in data[os]){
-                //Split apart timestamps for conversion into UTC time for chart
-                parseDate = x.split("-");
-                year = parseDate[0];
-                month = parseDate[1] - 1; //Javascript months index from 0 instead of 1
-                day = parseDate[2];
-
+            for(datestr in data[os]){
                 //Calculate datapoint display value
-                dbg_total = divide(data[os][x]["debug_build"],data[os][x]["debug_build_counter"]) + divide(data[os][x]["debug_test"],data[os][x]["debug_test_counter"]);
-                opt_total = divide(data[os][x]["opt_build"],data[os][x]["opt_build_counter"]) + divide(data[os][x]["opt_test"],data[os][x]["opt_test_counter"]);
+                dbg_total = divide(data[os][datestr]["debug_build"],data[os][datestr]["debug_build_counter"]) + divide(data[os][datestr]["debug_test"],data[os][datestr]["debug_test_counter"]);
+                opt_total = divide(data[os][datestr]["opt_build"],data[os][datestr]["opt_build_counter"]) + divide(data[os][datestr]["opt_test"],data[os][datestr]["opt_test_counter"]);
                 value = Math.max(dbg_total,opt_total);
 
-                if (!isNaN(value)){
-                    //Convert from seconds to hours
-                    value = to_hours(value);
-
-                    //Form datapoint
-                    datapoint = [Date.UTC(year, month, day), value];
-
-                    //Push datapoint to the series
-                    series['data'].push(datapoint);
-                }else{
-                    /*
-                        DEBUG.
-                        IT SHOULD NEVER GET HERE.
-                    */
-                    $("#errors").append("Datapoint Date: " + x+"<br/>=======================<br/>");
-                    $("#errors").append("debug build: " + data[os][x]["debug_build"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["debug_build_counter"]+"<br/>");
-                    $("#errors").append("debug test: " + data[os][x]["debug_test"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["debug_test_counter"]+"<br/>");
-                    $("#errors").append("opt build: " + data[os][x]["opt_build"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["opt_build_counter"]+"<br/>");
-                    $("#errors").append("opt test: " + data[os][x]["opt_test"]+"<br/>");
-                    $("#errors").append("" + data[os][x]["opt_test_counter"]+"<br/><br/>");
-                }
-
+                //Convert from seconds to hours
+                value = to_hours(value);
+              
+                //Form datapoint
+                datapoint = [parseDate(datestr), value];
+              
+                //Push datapoint to the series
+                series['data'].push(datapoint);
             }
             //Push each completed series to the overall dataset
             graph_data.push(series);
@@ -562,12 +457,7 @@ function show_mochitests(params_os, params_buildtype){
                         continue;
                     }
 
-                    date = moredata[x]["date"]; //contains the day this happened
-                    parseDate = date.split("-");
-                    year = parseDate[0];
-                    month = parseDate[1] - 1; //Javascript months index from 0 instead of 1
-                    day = parseDate[2];
-                    datapoint = [Date.UTC(year, month, day), value];
+                    datapoint = [parseDate(moredata[x]["date"]), value];
 
                     /*
                         Insert datapoint into list if it's a unique date,
@@ -673,7 +563,6 @@ function show_isthisbuildfaster() {
 
 $(function() {
   $('#result').replaceWith(ich.index());
-
   var router = Router({
     '': {
       on: function() {
@@ -683,7 +572,9 @@ $(function() {
       }
     },
     '/turnaround': {
-      on: show_turnaround
+      '/:type': {
+        on: show_turnaround
+      }
     },
     '/executiontime': {
       '/:type': {

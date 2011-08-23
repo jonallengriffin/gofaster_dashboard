@@ -105,7 +105,10 @@ a:hover{
     margin:0 auto;
     width:960px;
 }
-
+#container {
+    width: 600px;
+    height: 400px;
+}
 #itbf_form label {
     width: 150px;
     float: left;
