@@ -670,3 +670,37 @@ function show_isthisbuildfaster() {
   });
 
 }
+
+$(function() {
+  var router = Router({ // given the route '/dog/yella'.
+    '': {
+      on: function() {
+          $('#result').replaceWith(ich.index());
+        $('#errors').html("");
+        $('#container').html("");
+      }
+    },
+
+    '/turnaround': {
+      on: show_turnaround
+    },
+    '/executiontime': {
+      '/:type': {
+        on: show_executiontime
+      }
+    },
+    '/waittime': {
+      '/:type': {
+        on: show_waittime 
+      }
+    },
+    '/overhead': {
+      '/:type': {
+        on: show_overhead 
+      }
+    },
+    '/isthisbuildfaster': {
+      on: show_isthisbuildfaster
+    }
+  }).init();
+});

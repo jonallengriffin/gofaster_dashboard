@@ -26,6 +26,7 @@ To run the server in test mode, do the following:
 # Credits / Acknowledgements
 
 * HTML templating done using the ICanHaz library (http://icanhazjs.com/)
+* Routing done using the SugarSkull library (http://hij1nx.github.com/SugarSkull)
 * Pretty graphs generated with HighCharts (http://www.highcharts.com/). Note 
 that HighCharts is only free for non-commercial use. See 
 http://www.highcharts.com/license for more information.

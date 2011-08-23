@@ -15,32 +15,23 @@
             <a href="#"><div id="logolink"></div></a>
             <h2>Metrics</h2>
             <ul>
-              <li><a href="#" onclick="show_turnaround()">Overall Build & Test Turnaround</a></li>
-              <li><a href="#" onclick="show_executiontime('build')">Avg Build Time</a></li>
-              <li><a href="#" onclick="show_executiontime('test')">Avg Test Time</a></li>
-              <li><a href="#" onclick="show_waittime('build')">Build Machine Wait</a></li>
-              <li><a href="#" onclick="show_waittime('test')">Test Machine Wait</a></li>
-              <li><a href="#" onclick="show_overhead('build')">Build Setup & Teardown</a></li>
-              <li><a href="#" onclick="show_overhead('test')">Test Setup & Teardown</a></li>
+              <li><a href="#/turnaround">Overall Build & Test Turnaround</a></li>
+              <li><a href="#/executiontime/build">Avg Build Time</a></li>
+              <li><a href="#/executiontime/test">Avg Test Time</a></li>
+              <li><a href="#/waittime/build">Build Machine Wait</a></li>
+              <li><a href="#/waittime/test">Test Machine Wait</a></li>
+              <li><a href="#/overhead/build">Build Setup & Teardown</a></li>
+              <li><a href="#/overhead/test">Test Setup & Teardown</a></li>
               <!--li><a href="#" onclick="show_mochitests()">Top 10 Slowest Mochitests</a></li-->
             </ul>
             <br/>
             <h2>Tools</h2>
             <ul>
-              <li><a href="#" onclick="show_isthisbuildfaster()">Is This Build Faster?</a></li>
+              <li><a href="#/isthisbuildfaster">Is This Build Faster?</a></li>
             </ul>
         </div>
         <div id="rightcontent">
-            <div id="result" >
-
-                <h3>Welcome to Mozilla's GoFaster dashboard!</h3>
-                <br/>                <p>Here you can find relevant displays for build and test metrics. For more 
-                  information on GoFaster (also known as "BuildFaster") see the
-                  <a href="https://wiki.mozilla.org/ReleaseEngineering/BuildFaster">wiki page</a>.</p>
-                <br/>
-                <p>Built by <a href="http://wiki.mozilla.org/Auto-tools">Mozilla Firefox Automation & Tools Engineering</a></p>
-
-            </div>
+            <div id="result"></div>
             <div id="errors"></div>
             <div id="container"></div>
         </div>
@@ -52,7 +43,20 @@
     <script src="js/ICanHaz.min.js"></script>
     <script src="js/highcharts.js"></script>
     <script src="js/modules/exporting.js"></script>
-    <script src="js/gofaster.js"></script>
+    <script src="js/SS.min.js"></script>
+    <script src="js/gofaster.js"></script>    
+
+    <script id="index" type="text/html">
+      <div id="result">
+        <h3>Welcome to Mozilla's GoFaster dashboard!</h3>
+        <br/>
+        <p>Here you can find relevant displays for build and test metrics. For more 
+          information on GoFaster (also known as "BuildFaster") see the
+          <a href="https://wiki.mozilla.org/ReleaseEngineering/BuildFaster">wiki page</a>.</p>
+        <br/>
+        <p>Built by <a href="http://wiki.mozilla.org/Auto-tools">Mozilla Firefox Automation & Tools Engineering</a></p>
+      </div>
+    </script>
 
     <script id="itbf_header" class="partial" type="text/html">
         <h3>Is this build faster?</h3>
