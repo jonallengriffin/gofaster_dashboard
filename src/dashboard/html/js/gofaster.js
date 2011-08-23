@@ -672,15 +672,16 @@ function show_isthisbuildfaster() {
 }
 
 $(function() {
-  var router = Router({ // given the route '/dog/yella'.
+  $('#result').replaceWith(ich.index());
+
+  var router = Router({
     '': {
       on: function() {
-          $('#result').replaceWith(ich.index());
+        $('#result').replaceWith(ich.index());
         $('#errors').html("");
         $('#container').html("");
       }
     },
-
     '/turnaround': {
       on: show_turnaround
     },
