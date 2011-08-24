@@ -30,6 +30,7 @@
             <br/>
             <h2>Tools</h2>
             <ul>
+              <li><a href="#/buildcharts">Build Charts</a></li>
               <li><a href="#/isthisbuildfaster">Is This Build Faster?</a></li>
             </ul>
         </div>
@@ -63,6 +64,25 @@
         <p>Built by <a href="http://wiki.mozilla.org/Auto-tools">Mozilla Firefox Automation & Tools Engineering</a></p>
       </div>
     </script>
+
+    <script id="buildlist" type="text/html">
+      <div id="result">
+        <h3>Build charts</h3> 
+        <br/>
+        <p>Click on a build to get its buildchart. Buildcharts will open in a new tab.</p>
+        <br/>
+        <ul>
+          {{#buildindexes}}
+          <li>{{date}}</li>
+          <ul level="2">
+            {{#builds}}
+            <li><a href="buildchart.html?buildid={{.}}" target="_blank">{{.}}</a></li>
+            {{/builds}}
+          </ul>
+          {{/buildindexes}}
+        </ul>
+      </div>
+   </script>
 
     <script id="itbf_header" class="partial" type="text/html">
         <h3>Is this build faster?</h3>

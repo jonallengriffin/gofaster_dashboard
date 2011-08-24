@@ -225,6 +225,23 @@ class OverheadHandler(templeton.handlers.JsonHandler):
 
         return return_data
 
+class BuildsHandler(templeton.handlers.JsonHandler):
+    def _GET(self, params, body):
+        builds = map(lambda e: {'uid': e[0], 'date': e[1] }, sorted(set(map(lambda e: (e['uid'], e['submitted_at']), get_build_data())), key=lambda e: e[1]))
+
+        builddata = {}
+        for build in builds:
+            if not builddata.get(build['date']):
+                builddata[build['date']] = []
+            builddata[build['date']].append(build['uid'])
+
+        return { 'builds': map(lambda b: { 'date': b, 'builds': builddata[b] }, sorted(builddata.keys())) }
+
+class BuildDataHandler(templeton.handlers.JsonHandler):
+    def _GET(self, params, body):
+        buildid = params["buildid"][0]
+        return sorted(filter(lambda e: e['uid'] == buildid, get_build_data()), key=lambda e: e['start_time'])
+
 class IsThisBuildFasterJobsHandler(templeton.handlers.JsonHandler):
     def _GET(self, params, body):
         return { 'num_pending_jobs': len(itbf.queue.get_copy()) }
@@ -250,5 +267,7 @@ urls = (
   '/waittime/?', "WaitTimeHandler",
   '/overhead/?', "OverheadHandler",
   '/executiontime/?', "ExecutionTimeHandler",
+  '/builds/?', "BuildsHandler",
+  '/builddata/?', "BuildDataHandler",
   '/itbf/jobs/?', "IsThisBuildFasterJobsHandler",
 )

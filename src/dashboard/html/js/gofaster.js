@@ -579,6 +579,15 @@ function show_mochitests(params_os, params_buildtype){
     }); //End $.getJSON()
 } //End show_mochitests
 
+
+function show_buildcharts() {
+  show_loading();
+  $.getJSON("api/builds/", function(data) {
+    hide_loading();
+    $('#result').replaceWith(ich.buildlist({ buildindexes: data['builds'] }));
+  });
+}
+
 function show_isthisbuildfaster() {
   show_loading();
   $.getJSON("api/itbf/jobs/", function(data) {
@@ -639,6 +648,9 @@ $(function() {
       '/:type': {
         on: show_overhead 
       }
+    },
+    '/buildcharts': {
+      on: show_buildcharts
     },
     '/isthisbuildfaster': {
       on: show_isthisbuildfaster

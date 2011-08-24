@@ -5,6 +5,7 @@ import csv
 import dateutil.parser
 import cPickle as pickle
 import datetime
+from time import mktime
 
 # Converts datasource formatted time (stopwatch format "x days, 0:00:00") to seconds
 def to_seconds(stopwatch_time):
@@ -26,7 +27,10 @@ for row in reader:
         continue
 
     entry = {}
+    entry["uid"] = row["uid"]
     entry["submitted_at"] = submitted_at.strftime("%Y-%m-%d")
+    entry["start_time"] = mktime(dateutil.parser.parse(unicode(row["start_time"])).timetuple())
+    entry["finish_time"] = mktime(dateutil.parser.parse(unicode(row["finish_time"])).timetuple())
 
     if row["jobtype"] == "talos":
         entry['jobtype'] = "talos"
