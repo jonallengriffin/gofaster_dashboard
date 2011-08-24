@@ -117,6 +117,13 @@ class TurnaroundHandler(templeton.handlers.JsonHandler):
             if entry["jobtype"] == "talos":
                 continue
 
+            datapoint_os = entry["os"]
+            if datapoint_os == "win7" or datapoint_os == "winxp":                
+                datapoint_os = "win32" # for overall time, win7/winxp tests are win32 datapoints
+
+            if target_os != "all" and datapoint_os != target_os:
+                continue
+
             datapoint_date = entry["submitted_at"]
             datapoint_os = entry["os"]
             if datapoint_os == "win7" or datapoint_os == "winxp":                

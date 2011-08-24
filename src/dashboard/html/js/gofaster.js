@@ -56,11 +56,12 @@ function ISODateString(d){
     function pad(n){return n<10 ? '0'+n : n}
     return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate());
 }
+/*
 function basename(path) {
     //Gets basename of a path
-    return path.replace(/\\/g,'/').replace( /.*\//, '' );
+    return path.replace(/\\/g, '/').replace(/.*\//, '' );
 }
-
+*/
 function divide(dividend, divisor){
     //Division function that allows division by zero (returns zero)
     quotient = dividend/divisor;
@@ -130,11 +131,58 @@ function show_turnaround(type) {
           axisLabel: 'Average Turnaround Time (Hours)'
         },
         series: {
-          lines: { show: true, fill: false, steps: false }
+          lines: { show: true, fill: false, steps: false },
+          points: { show: true }
         }
       });
 
     } else { // type == components
+
+      $('#result').append("<h3>Go Faster! - Relative Build & Test Turnaround</h3><select><option>All platforms</option><option>win32</option></select><br/>");
+
+      var graphdata = [];
+      var alldates = Object.keys(data).map(function(os) {
+        return Object.keys(data[os]);
+      }).reduce(function(datearray1,datearray2) { 
+        return datearray1.concat(datearray2); 
+      }).filter(function(itm,i,a){
+        return i==a.indexOf(itm);
+      });
+
+      ["build", "test"].forEach(function(action) {
+        var series = {};
+        series.label = action;
+        series.data = alldates.map(function(datestr) {
+          //Calculate datapoint display value
+          var total = 0;
+          Object.keys(data).forEach(function(os) {
+            if (data[os][datestr] !== undefined) {
+              var debug_total = divide(data[os][datestr]['debug_'+action],
+                                       data[os][datestr]['debug_'+action+'_counter']);  
+              var opt_total = divide(data[os][datestr]["opt_"+action], 
+                                     data[os][datestr]["opt_"+action+"_counter"]);
+              total += to_hours(Math.max(debug_total, opt_total));
+            }
+          });
+          
+          return [parseDate(datestr), total];
+        }).sort(function(a,b) { return a[0]-b[0]; });
+        graphdata.push(series);
+      });
+
+      $.plot($("#container"), graphdata, {
+        xaxis: {
+          mode: "time"
+        },
+        yaxis: {
+          axisLabel: 'Cumulative Time (Hours)'
+        },
+        series: {
+          stack: true,
+          lines: { show: true, fill: true, steps: false },
+        }
+      });
+      
     }
   });  
 }
@@ -151,6 +199,7 @@ function show_executiontime(params_type){
         resourceURL = 'api/waittime';
         graph_title = "Combined average execution times for build and test";
     }
+
     $.getJSON(resourceURL, function(data) {
         graph_data = [];
 
