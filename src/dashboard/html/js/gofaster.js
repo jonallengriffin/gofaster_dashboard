@@ -12,9 +12,9 @@
 
 function show_loading(){
     //Clear the display divs and show loading gif
-    $('#result').html("<div id='loading' style='margin:0 auto; padding-top:20px;'><center><span style='font-weight:200; font-size:200%;'>Loading...</span><br/><img height='32' width='32' src='images/loading.gif' alt='' /></center></div>");
-    $('#errors').html("");
-    $('#container').html("");
+  $('#result').html("<div id='loading' style='margin:0 auto; padding-top:20px;'><center><span style='font-weight:200; font-size:200%;'>Loading...</span><br/><img height='32' width='32' src='images/loading.gif' alt='' /></center></div>");
+  $('#errors').html("");
+  $('#container').hide();
 }
 
 function hide_loading(){
@@ -96,7 +96,8 @@ function show_turnaround(type) {
 
     //Loading is complete!
     hide_loading();
-    
+    $('#container').show();
+
     if (type === "total") {
       $('#result').append("<h3>Go Faster! - Overall Build & Test Turnaround</h3><br/>");
 
@@ -201,6 +202,7 @@ function show_executiontime(params_type){
     }
 
     $.getJSON(resourceURL, function(data) {
+        $('#container').show();
         graph_data = [];
 
         //Group data by OS
@@ -284,6 +286,8 @@ function show_waittime(params_type){
         graph_title = "Combined average wait times for build and test";
     }
     $.getJSON(resourceURL, function(data) {
+        $('#container').show();
+
         graph_data = [];
 
         //Group data by OS
@@ -366,6 +370,7 @@ function show_overhead(params_type){
         graph_title = "Combined average setup/teardown times for test and build";
     }
     $.getJSON(resourceURL, function(data) {
+        $('#container').show();
         graph_data = [];
 
         //Group data by OS
