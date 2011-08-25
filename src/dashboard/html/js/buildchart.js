@@ -33,34 +33,32 @@ $(function() {
                                                  date: summary['submitted_at'],
                                                  totaltime: ((summary['time_taken'])/60.0/60.0).toFixed(3) }));
 
+    $('#buildchart').width(((max_time-min_time)/60.0)*4)+100; // 4 pixels/minute (+ some extra space for text)
+    $('#buildchart').height(events.length*25); // 25 pixels per event
+    
+    function get_relative_time(t) {
+      return (t-min_time)/60.0/60.0;
+    }
+    
 
-    var canvas = document.getElementById('canvas');
-    canvas.width=((max_time-min_time)/60.0)*5 + 200; // 5 pixels/minute (+ some extra space for text)
-    canvas.height=events.length*20; // 20 pixels per event
-
-    var ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#ddd";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    var y=0;
-    events.forEach(function(entry) {
-      var x1 = (entry.start_time - min_time)/60.0*5;
-      var x2 = (entry.finish_time - min_time)/60.0*5;
-      console.log("x1: " + x1 + " x2: " + x2);
-      ctx.fillStyle = "#aaf";
-      ctx.fillRect(x1, y, x2-x1, 20);
-
-      var jobtype = entry.jobtype;
-      if (entry.jobtype !== "talos") {
-        jobtype = entry.buildtype + " " + entry.jobtype;
+    var i=events.length;
+    var series = [];
+    var elements = [];
+    events.forEach(function(event) {
+      // get job description
+      var jobtype = event.jobtype;
+      if (event.jobtype !== "talos") {
+        jobtype = event.buildtype + " " + event.jobtype;
       }
-      var time_taken_str = ((entry.finish_time - entry.start_time)/60.0).toFixed(3) + " minutes";
-      
-      ctx.fillStyle = "#000";
-      ctx.textBaseline = "top";
-      ctx.fillText(entry.os + " " + jobtype + " " + time_taken_str, x1, y+2);
-      
-      y+=20.0;
+      var desc = event.os + " " + jobtype + " " + ((event.finish_time - event.start_time)/60.0).toFixed(3) + " min";
+      series[series.length] = [get_relative_time(event.start_time), i, get_relative_time(event.finish_time), desc];
+      i--;
     });
+    var options = { series: { gantt: { active: true, show: true, barheight: 0.2 } }
+		    ,xaxis:  { min: 0, max: get_relative_time(max_time)+1, axisLabel: 'Time (hours)' }
+		    ,yaxis:  { min: 0, max: series.length + 0.5, ticks: 0 }
+		    ,grid:   { hoverable: true, clickable: true}
+   		  };
+    $.plot($("#buildchart"), [ { data: series } ], options);
   });
 });
