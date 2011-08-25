@@ -250,7 +250,8 @@ class BuildsHandler(templeton.handlers.JsonHandler):
                 summaries[date] = []
             summaries[date].append({'uid': summary['uid'], 
                                     'revision': summary['revision'],
-                                    'time_taken': summary['time_taken']})
+                                    'time_taken': summary['time_taken'],
+                                    'last_event': summary['last_event']})
         
         for date in summaries.keys():
             summaries[date].sort(key=lambda s: s['time_taken'])

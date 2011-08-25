@@ -47,15 +47,17 @@ for row in reader:
 
 summaries = []
 for uid in set(map(lambda e: e["uid"], events)):
-    buildevents = filter(lambda e: e['uid'] == uid, events)
+    buildevents = sorted(filter(lambda e: e['uid'] == uid, events), key=lambda e: e['finish_time'])
 
     revision = buildevents[0]['revision']
     submitted_at = buildevents[0]['submitted_at']
     time_taken = (max(map(lambda e: e['finish_time'], buildevents)) - 
                   min(map(lambda e: e['start_time'], buildevents)))
+    last_event = buildevents[-1]
 
     summaries.append({ 'revision': revision, 'uid': uid, 
                        'submitted_at': submitted_at,
-                       'time_taken': time_taken })
+                       'time_taken': time_taken,
+                       'last_event': last_event })
 
 pickle.dump({'events': events, 'summaries': summaries }, open(sys.argv[2], 'wb'))

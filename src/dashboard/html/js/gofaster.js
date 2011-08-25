@@ -77,7 +77,7 @@ function parseDate(datestr) {
   var month = parsed[1] - 1; //Javascript months index from 0 instead of 1
   var day = parsed[2];
 
-  return Date.UTC(year, month, day)
+  return Date.UTC(year, month, day);
 }
 
 function to_hours(value){
@@ -592,12 +592,20 @@ function show_buildcharts() {
     
     var all_summaries = data['builds'];
 
-    // reformat time/revision to look decent in summary form
+    // reformat time/revision to look decent in summary form +
+    // format the last job type
     all_summaries.forEach(function(buildday) {     
       buildday["builds"] = buildday["builds"].map(function(b) { 
+        // get description of last job (FIXME: duplication with buildchart.js)
+        var jobtype = b.last_event.jobtype;
+        if (b.last_event.jobtype !== "talos") {
+          jobtype = b.last_event.buildtype + " " + b.last_event.jobtype;
+        }
+
         return { 'revision': b['revision'].slice(0,8),
                  'uid': b['uid'],
-                 'time_taken': ((b['time_taken'])/60.0/60.0).toFixed(3)
+                 'time_taken': ((b['time_taken'])/60.0/60.0).toFixed(3),
+                 'last_event': b.last_event.os + " " + jobtype
                };
       });
     });
