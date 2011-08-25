@@ -73,14 +73,14 @@
         <p>Click on a build to get its buildchart. Buildcharts will open in a new tab.</p>
         <br/>
         <ul>
-          {{#buildindexes}}
+          {{#summaries}}
           <li>{{date}}</li>
           <ul level="2">
             {{#builds}}
-            <li><a href="buildchart.html?buildid={{.}}" target="_blank">{{.}}</a></li>
+            <li><a href="buildchart.html?buildid={{uid}}" target="_blank">{{revision}}</a> ({{time_taken}} hours)</li>
             {{/builds}}
           </ul>
-          {{/buildindexes}}
+          {{/summaries}}
         </ul>
       </div>
    </script>

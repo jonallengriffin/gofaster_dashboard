@@ -19,29 +19,43 @@ def to_seconds(stopwatch_time):
 f = open(sys.argv[1], 'r')
 reader = csv.DictReader(f)
 
-entries = []
+events = []
 for row in reader:
     # ignore results > 30 days old
     submitted_at = dateutil.parser.parse(unicode(row["submitted_at"]))
     if (datetime.datetime.today() - submitted_at).days > 30:
         continue
 
-    entry = {}
-    entry["uid"] = row["uid"]
-    entry["submitted_at"] = submitted_at.strftime("%Y-%m-%d")
-    entry["start_time"] = mktime(dateutil.parser.parse(unicode(row["start_time"])).timetuple())
-    entry["finish_time"] = mktime(dateutil.parser.parse(unicode(row["finish_time"])).timetuple())
+    event = {}
+    event["uid"] = row["uid"]
+    event["revision"] = row["revision"]
+    event["submitted_at"] = submitted_at.strftime("%Y-%m-%d")
+    event["start_time"] = mktime(dateutil.parser.parse(unicode(row["start_time"])).timetuple())
+    event["finish_time"] = mktime(dateutil.parser.parse(unicode(row["finish_time"])).timetuple())
 
     if row["jobtype"] == "talos":
-        entry['jobtype'] = "talos"
+        event['jobtype'] = "talos"
     else:
-        (entry['buildtype'], entry['jobtype']) = row["jobtype"].split(" ")
+        (event['buildtype'], event['jobtype']) = row["jobtype"].split(" ")
 
-    entry["work_time"] = to_seconds(row["work_time"])
-    entry["wait_time"] = to_seconds(row["wait_time"])
-    entry["elapsed"] = to_seconds(row["elapsed"])
-    entry["os"] = row["os"]
+    event["work_time"] = to_seconds(row["work_time"])
+    event["wait_time"] = to_seconds(row["wait_time"])
+    event["elapsed"] = to_seconds(row["elapsed"])
+    event["os"] = row["os"]
 
-    entries.append(entry)
+    events.append(event)
 
-pickle.dump(entries, open(sys.argv[2], 'wb'))
+summaries = []
+for uid in set(map(lambda e: e["uid"], events)):
+    buildevents = filter(lambda e: e['uid'] == uid, events)
+
+    revision = buildevents[0]['revision']
+    submitted_at = buildevents[0]['submitted_at']
+    time_taken = (max(map(lambda e: e['finish_time'], buildevents)) - 
+                  min(map(lambda e: e['start_time'], buildevents)))
+
+    summaries.append({ 'revision': revision, 'uid': uid, 
+                       'submitted_at': submitted_at,
+                       'time_taken': time_taken })
+
+pickle.dump({'events': events, 'summaries': summaries }, open(sys.argv[2], 'wb'))

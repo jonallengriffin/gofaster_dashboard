@@ -71,6 +71,12 @@ def get_build_data():
         last_parsed_buildfaster_data = mtime
     return buildfaster_data
 
+def get_build_events():
+    return get_build_data()['events']
+
+def get_build_summaries():
+    return get_build_data()['summaries']
+
 #Mochitest handler returns mochitest runtimes on given days and builds
 class MochitestHandler(templeton.handlers.JsonHandler):
     def _GET(self, params, body):
@@ -112,7 +118,7 @@ class TurnaroundHandler(templeton.handlers.JsonHandler):
             pass
 
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-        for entry in get_build_data():
+        for entry in get_build_events():
             # Skip talos
             if entry["jobtype"] == "talos":
                 continue
@@ -151,7 +157,7 @@ class ExecutionTimeHandler(templeton.handlers.JsonHandler):
             show_type = "all"
 
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-        for entry in get_build_data():
+        for entry in get_build_events():
             # Skip talos
             if entry["jobtype"] == "talos":
                 continue
@@ -180,7 +186,7 @@ class WaitTimeHandler(templeton.handlers.JsonHandler):
             show_type = "all"
 
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-        for entry in get_build_data():
+        for entry in get_build_events():
             if entry["jobtype"] == "talos":
                 continue
 
@@ -208,7 +214,7 @@ class OverheadHandler(templeton.handlers.JsonHandler):
             show_type = "all"
 
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-        for entry in get_build_data():
+        for entry in get_build_events():
             if entry["jobtype"] == "talos":
                 continue
 
@@ -225,22 +231,43 @@ class OverheadHandler(templeton.handlers.JsonHandler):
 
         return return_data
 
+
+def get_build_detail(buildid):
+    buildevents = sorted(filter(lambda e: e['uid'] == buildid, get_build_events()), 
+                         key=lambda e: e['start_time'])
+    
+    return { 'date': buildevents[0]['submitted_at'],
+             'revision': buildevents[0]['revision'][0:8],
+             'buildevents': buildevents }
+
 class BuildsHandler(templeton.handlers.JsonHandler):
     def _GET(self, params, body):
-        builds = map(lambda e: {'uid': e[0], 'date': e[1] }, sorted(set(map(lambda e: (e['uid'], e['submitted_at']), get_build_data())), key=lambda e: e[1]))
 
-        builddata = {}
-        for build in builds:
-            if not builddata.get(build['date']):
-                builddata[build['date']] = []
-            builddata[build['date']].append(build['uid'])
+        summaries = {}
+        for summary in get_build_summaries():
+            date = summary['submitted_at']
+            if not summaries.get(date):
+                summaries[date] = []
+            summaries[date].append({'uid': summary['uid'], 
+                                    'revision': summary['revision'],
+                                    'time_taken': summary['time_taken']})
+        
+        for date in summaries.keys():
+            summaries[date].sort(key=lambda s: s['time_taken'])
+            summaries[date].reverse()
 
-        return { 'builds': map(lambda b: { 'date': b, 'builds': builddata[b] }, sorted(builddata.keys())) }
+        return { 'builds': map(lambda b: { 'date': b, 
+                                           'builds': summaries[b] }, 
+                               reversed(sorted(summaries.keys()))) }
 
 class BuildDataHandler(templeton.handlers.JsonHandler):
     def _GET(self, params, body):
         buildid = params["buildid"][0]
-        return sorted(filter(lambda e: e['uid'] == buildid, get_build_data()), key=lambda e: e['start_time'])
+        summary = filter(lambda s: s['uid'] == buildid, get_build_summaries())[0]
+        events = sorted(filter(lambda e: e['uid'] == buildid, get_build_events()), 
+                             key=lambda e: e['start_time'])
+
+        return { 'summary': summary, 'events': events }
 
 class IsThisBuildFasterJobsHandler(templeton.handlers.JsonHandler):
     def _GET(self, params, body):

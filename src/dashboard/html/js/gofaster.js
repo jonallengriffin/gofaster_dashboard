@@ -589,10 +589,23 @@ function show_buildcharts() {
   show_loading();
   $.getJSON("api/builds/", function(data) {
     hide_loading();
-    $('#result').replaceWith(ich.buildlist({ buildindexes: data['builds'] }));
+    
+    var all_summaries = data['builds'];
+
+    // reformat time/revision to look decent in summary form
+    all_summaries.forEach(function(buildday) {     
+      buildday["builds"] = buildday["builds"].map(function(b) { 
+        return { 'revision': b['revision'].slice(0,8),
+                 'uid': b['uid'],
+                 'time_taken': ((b['time_taken'])/60.0/60.0).toFixed(3)
+               };
+      });
+    });
+
+    $('#result').replaceWith(ich.buildlist({ summaries: all_summaries }));
   });
 }
-
+           
 function show_isthisbuildfaster() {
   show_loading();
   $.getJSON("api/itbf/jobs/", function(data) {
