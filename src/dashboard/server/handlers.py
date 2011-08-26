@@ -180,20 +180,37 @@ class TurnaroundHandler(templeton.handlers.JsonHandler):
 
 class EndToEndTimeHandler(templeton.handlers.JsonHandler):
     def _GET(self, params, body):
+        try:
+            mode = params["mode"][0]
+        except:
+            mode = "average"
+        print mode
         summaries = get_build_summaries()
 
-        end_to_end_times = defaultdict(lambda: [])
+        if mode == "os":
+            end_to_end_times = defaultdict(lambda: [])
+            for os in set(sum(map(lambda s: s['time_taken_per_os'].keys(), 
+                                  summaries), [])):
+                for date in sorted(set(map(lambda s: s['submitted_at'], summaries))):
+                    count = 0.0
+                    total = 0
+                    for summary in filter(lambda s: s['submitted_at']==date, summaries):
+                        if summary['time_taken_per_os'].get(os):
+                            total += summary['time_taken_per_os'][os]
+                            count += 1
+                    end_to_end_times[os].append([date, total/count])
 
-        for os in set(sum(map(lambda s: s['time_taken_per_os'].keys(), 
-                              summaries), [])):
-            for date in sorted(set(map(lambda s: s['submitted_at'], summaries))):
-                count = 0.0
-                total = 0
-                for summary in filter(lambda s: s['submitted_at']==date, summaries):
-                    if summary['time_taken_per_os'].get(os):
-                        total += summary['time_taken_per_os'][os]
-                        count += 1
-                end_to_end_times[os].append([date, total/count])
+            return { 'end_to_end_times': end_to_end_times }
+
+
+        end_to_end_times = []
+        for date in sorted(set(map(lambda s: s['submitted_at'], summaries))):
+            count = 0.0
+            total = 0
+            for summary in filter(lambda s: s['submitted_at']==date, summaries):
+                total += summary['time_taken_overall']
+                count += 1
+            end_to_end_times.append([date, total/count])
                 
         return { 'end_to_end_times': end_to_end_times }
 

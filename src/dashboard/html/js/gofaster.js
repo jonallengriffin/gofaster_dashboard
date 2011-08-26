@@ -226,26 +226,35 @@ function show_turnaround(type) {
   });  
 }
 
-function show_endtoend() {
+function show_endtoend(mode) {
   show_loading(); //Show loading div to keep user happy
-  
-  //Request data from api/turnaround and do stuff
-  $.getJSON('api/endtoendtimes', function(data) {
-    //Loading is complete!
+
+  $.getJSON('api/endtoendtimes?mode=' + mode, function(data) {
     hide_loading();
     $('#container').show();
-
-    $('#result').append("<h3>Go Faster! - Average End to End Performance per OS</h3><br/>");    
-    //Group data by OS
+;    
     var end_to_end_times = data.end_to_end_times;
-    var graphdata = Object.keys(end_to_end_times).map(function(os) {
-      var series = {};
-      series.label = os;
-      series.data = end_to_end_times[os].map(function(datapoint) {
+    
+    var graphdata;
+    if (mode === "os") {
+      $('#result').append("<h3>Go Faster! - Average End to End Performance per OS</h3><br/>");
+      graphdata = Object.keys(end_to_end_times).map(function(os) {
+        var series = {};
+        series.label = os;
+        series.data = end_to_end_times[os].map(function(datapoint) {
           return [parseDate(datapoint[0]), to_hours(datapoint[1])];
+        });
+        return series;
       });
-      return series;
-    });
+    } else {
+      $('#result').append("<h3>Go Faster! - Average End to End Performance</h3><br/>");
+      var series = {};
+      series.data = end_to_end_times.map(function(datapoint) {
+        return [parseDate(datapoint[0]), to_hours(datapoint[1])];
+      });
+
+      graphdata = [ series ];
+    }
     
     $.plot($("#container"), graphdata, {
       xaxis: {
@@ -738,8 +747,10 @@ $(function() {
         on: show_turnaround
       }
     },
-    '/endtoend/': {
-      on: show_endtoend
+    '/endtoend': {
+      '/:mode': {
+        on: show_endtoend
+      }
     },
 
     '/executiontime': {
