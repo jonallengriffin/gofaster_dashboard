@@ -31,7 +31,7 @@ $(function() {
     $('#header').prepend(ich.buildchart_header({ build_id: summary['uid'], 
                                                  revision: summary['revision'], 
                                                  date: summary['submitted_at'],
-                                                 totaltime: ((summary['time_taken'])/60.0/60.0).toFixed(3) }));
+                                                 totaltime: ((summary['time_taken_overall'])/60.0/60.0).toFixed(3) }));
 
     $('#buildchart').width(((max_time-min_time)/60.0)*4)+100; // 4 pixels/minute (+ some extra space for text)
     $('#buildchart').height(events.length*25); // 25 pixels per event
