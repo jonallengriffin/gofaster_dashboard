@@ -226,6 +226,46 @@ function show_turnaround(type) {
   });  
 }
 
+function show_endtoend() {
+  show_loading(); //Show loading div to keep user happy
+  
+  //Request data from api/turnaround and do stuff
+  $.getJSON('api/endtoendtimes', function(data) {
+    //Loading is complete!
+    hide_loading();
+    $('#container').show();
+
+    $('#result').append("<h3>Go Faster! - Average End to End Performance per OS</h3><br/>");    
+    //Group data by OS
+    var end_to_end_times = data.end_to_end_times;
+    var graphdata = Object.keys(end_to_end_times).map(function(os) {
+      var series = {};
+      series.label = os;
+      series.data = end_to_end_times[os].map(function(datapoint) {
+          return [parseDate(datapoint[0]), to_hours(datapoint[1])];
+      });
+      return series;
+    });
+    
+    $.plot($("#container"), graphdata, {
+      xaxis: {
+        mode: "time"
+      },
+      yaxis: {
+        axisLabel: 'Time (Hours)'
+      },
+      series: {
+        lines: { show: true, fill: false, steps: false },
+        points: { show: true }
+      },
+      legend: {
+        position: "nw",
+        hideable: true
+      }
+    });
+  });
+}
+
 function show_executiontime(params_type){
     //Build and Test Execution Dashboard
     show_loading(); //Show loading div to keep user happy
@@ -698,6 +738,10 @@ $(function() {
         on: show_turnaround
       }
     },
+    '/endtoend/': {
+      on: show_endtoend
+    },
+
     '/executiontime': {
       '/:type': {
         on: show_executiontime

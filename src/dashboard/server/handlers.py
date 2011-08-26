@@ -94,7 +94,6 @@ def get_dates(params, days_apart=7):
     enddate = enddate.strftime("%Y-%m-%d")
     return (startdate, enddate)
 
-#Parse csv into well-formatted JSON -- data for turnaround graph
 last_parsed_buildfaster_data = None
 buildfaster_data = None
 def get_build_data():
@@ -178,6 +177,25 @@ class TurnaroundHandler(templeton.handlers.JsonHandler):
             return_data[datapoint_os][datapoint_date][datapoint_counter] += 1
 
         return return_data
+
+class EndToEndTimeHandler(templeton.handlers.JsonHandler):
+    def _GET(self, params, body):
+        summaries = get_build_summaries()
+
+        end_to_end_times = defaultdict(lambda: [])
+
+        for os in set(sum(map(lambda s: s['time_taken_per_os'].keys(), 
+                              summaries), [])):
+            for date in sorted(set(map(lambda s: s['submitted_at'], summaries))):
+                count = 0.0
+                total = 0
+                for summary in filter(lambda s: s['submitted_at']==date, summaries):
+                    if summary['time_taken_per_os'].get(os):
+                        total += summary['time_taken_per_os'][os]
+                        count += 1
+                end_to_end_times[os].append([date, total/count])
+                
+        return { 'end_to_end_times': end_to_end_times }
 
 #Execution Time handler returns average execution time for builds and tests
 class ExecutionTimeHandler(templeton.handlers.JsonHandler):
@@ -267,7 +285,6 @@ class OverheadHandler(templeton.handlers.JsonHandler):
 
         return return_data
 
-
 def get_build_detail(buildid):
     buildevents = sorted(filter(lambda e: e['uid'] == buildid, get_build_events()), 
                          key=lambda e: e['start_time'])
@@ -286,7 +303,7 @@ class BuildsHandler(templeton.handlers.JsonHandler):
                 summaries[date] = []
             summaries[date].append({'uid': summary['uid'], 
                                     'revision': summary['revision'],
-                                    'time_taken': summary['time_taken'],
+                                    'time_taken': summary['time_taken_overall'],
                                     'last_event': summary['last_event']})
         
         for date in summaries.keys():
@@ -328,6 +345,7 @@ class IsThisBuildFasterJobsHandler(templeton.handlers.JsonHandler):
 urls = (
   '/mochitest/?', "MochitestHandler",
   '/turnaround/?', "TurnaroundHandler",
+  '/endtoendtimes/?', "EndToEndTimeHandler",
   '/waittime/?', "WaitTimeHandler",
   '/overhead/?', "OverheadHandler",
   '/executiontime/?', "ExecutionTimeHandler",

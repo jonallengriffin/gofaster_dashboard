@@ -84,17 +84,33 @@ for row in reader:
 
 summaries = []
 for uid in set(map(lambda e: e["uid"], events)):
-    buildevents = sorted(filter(lambda e: e['uid'] == uid, events), key=lambda e: e['finish_time'])
+    events_for_build = sorted(filter(lambda e: e['uid'] == uid, events), key=lambda e: e['finish_time'])
 
-    revision = buildevents[0]['revision']
-    submitted_at = buildevents[0]['submitted_at']
-    time_taken = (max(map(lambda e: e['finish_time'], buildevents)) - 
-                  min(map(lambda e: e['start_time'], buildevents)))
-    last_event = buildevents[-1]
+    revision = events_for_build[0]['revision']
+    submitted_at = events_for_build[0]['submitted_at']
+    last_event = events_for_build[-1]
+
+    time_taken_per_os = {}
+    def get_time_taken(events_for_build):
+        return (max(map(lambda e: e['finish_time'], events_for_build)) - 
+                min(map(lambda e: e['start_time'], events_for_build)))
+    for os in set(map(lambda e: e['os'], events_for_build)):
+        if os == 'win32':
+            # win32 is just the build component, where we want end to end
+            continue
+        elif os == "win7" or os == "winxp":
+            # for overall time, win7/winxp incorporates win32 build times
+            os_events_for_build = filter(lambda e: e['os']==os or e['os']=='win32', 
+                                         events_for_build)
+        else:
+            os_events_for_build = filter(lambda e: e['os']==os, events_for_build)
+        time_taken_per_os[os] = get_time_taken(os_events_for_build)        
+    time_taken_overall = get_time_taken(events_for_build)
 
     summaries.append({ 'revision': revision, 'uid': uid, 
                        'submitted_at': submitted_at,
-                       'time_taken': time_taken,
+                       'time_taken_per_os': time_taken_per_os,
+                       'time_taken_overall': time_taken_overall,
                        'last_event': last_event })
 
 pickle.dump({'events': events, 'summaries': summaries }, open(sys.argv[2], 'wb'))
