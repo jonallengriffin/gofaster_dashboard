@@ -2,7 +2,10 @@
 
 This is the source to the Mozilla Firefox GoFaster dashboard, which aims
 to provide useful metrics and tools to help us reduce build and testing times
-for Mozilla Firefox.
+for Mozilla Firefox. It is part of GoFaster (also known as "BuildFaster")
+project. For more information see: 
+
+https://wiki.mozilla.org/ReleaseEngineering/BuildFaster
 
 # How to configure
 
