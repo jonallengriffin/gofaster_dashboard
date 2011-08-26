@@ -276,88 +276,61 @@ function show_endtoend(mode) {
 }
 
 function show_executiontime(params_type){
-    //Build and Test Execution Dashboard
-    show_loading(); //Show loading div to keep user happy
+  //Build and Test Execution Dashboard
+  show_loading(); //Show loading div to keep user happy
+  
+  if (params_type) {
+    resourceURL = 'api/executiontime?type='+params_type;
+    graph_title = "Average execution times for "+params_type;
+  } else {
+    resourceURL = 'api/waittime';
+    graph_title = "Combined average execution times for build and test";
+  }
+  
+  $.getJSON(resourceURL, function(data) {
+    hide_loading();
+    $('#container').show();
+    
+    var graphdata = Object.keys(data).map(function(os) {
+      var series = {};
+      series.label = os;
+      series.data = Object.keys(data[os]).map(function(datestr) {      
+        var dbg_total = divide(data[os][datestr]["debug_build"],
+                               data[os][datestr]["debug_build_counter"]) + 
+          divide(data[os][datestr]["debug_test"],
+                 data[os][datestr]["debug_test_counter"]);
+        var opt_total = divide(data[os][datestr]["opt_build"],
+                               data[os][datestr]["opt_build_counter"]) + 
+          divide(data[os][datestr]["opt_test"],
+                 data[os][datestr]["opt_test_counter"]);
+        
+        return [parseDate(datestr), to_hours(Math.max(dbg_total,opt_total))];
+      }).sort(function(a,b) { return a[0]-b[0]; });
 
-    //Request data from api/turnaround and do stuff
-    if(params_type){
-        resourceURL = 'api/executiontime?type='+params_type;
-        graph_title = "Average execution times for "+params_type;
-    }else{
-        resourceURL = 'api/waittime';
-        graph_title = "Combined average execution times for build and test";
-    }
+      return series;
+    });
 
-    $.getJSON(resourceURL, function(data) {
-        $('#container').show();
-        graph_data = [];
+    hide_loading();
 
-        //Group data by OS
-        for (os in data){
-            //Save each series into a set for display on the chart
-            series = {};
-            series.name = os;
-            series.data = []
-            for(datestr in data[os]){
+    $('#result').append("<h3>Go Faster! - " + graph_title + "</h3><br/>");
 
-                //Calculate datapoint display value
-                dbg_total = divide(data[os][datestr]["debug_build"],data[os][datestr]["debug_build_counter"]) + divide(data[os][datestr]["debug_test"],data[os][datestr]["debug_test_counter"]);
-                opt_total = divide(data[os][datestr]["opt_build"],data[os][datestr]["opt_build_counter"]) + divide(data[os][datestr]["opt_test"],data[os][datestr]["opt_test_counter"]);
-                value = Math.max(dbg_total,opt_total);
-
-              //Convert from seconds to hours
-              value = to_hours(value);
-              
-              //Form datapoint
-              datapoint = [parseDate(datestr), value];
-              
-              //Push datapoint to the series
-              series['data'].push(datapoint);
-            }
-            //Push each completed series to the overall dataset
-            graph_data.push(series);
-        }
-        //Loading is complete!
-        hide_loading();
-
-        //Begin Line Chart
-        var chart;
-        jQuery(document).ready(function() {
-            chart = new Highcharts.Chart({
-                chart: {
-                    renderTo: 'container',
-                    type: 'spline'
-                },
-                title: {
-                    text: 'Go Faster! - '+graph_title
-                },
-                subtitle: {
-                    text: ''
-                },
-                xAxis: {
-                    type: 'datetime',
-                    dateTimeLabelFormats: { // don't display the dummy year
-                        month: '%b %e',
-                        year: '%Y'
-                    }
-                },
-                yAxis: {
-                    title: {
-                        text: 'Average Execution Time (Hours)'
-                    },
-                    min: 0
-                },
-                tooltip: {
-                    formatter: function() {
-                            return '<b>'+ this.series.name +'</b><br/>'+
-                            Highcharts.dateFormat('%b %e, %Y', this.x) +': '+ this.y +' hours';
-                    }
-                },
-                series: graph_data
-            });
-        });
-        //End Line Chart
-    }); //End $.getJSON
+    $.plot($("#container"), graphdata, {
+      xaxis: {
+        mode: "time"
+      },
+      yaxis: {
+        axisLabel: 'Time (Hours)'
+      },
+      series: {
+        lines: { show: true, fill: false, steps: false },
+        points: { show: true }
+      },
+      legend: {
+        position: "nw",
+        hideable: true
+      }
+    });
+  });
 }
 
 function show_waittime(params_type){
@@ -373,75 +346,49 @@ function show_waittime(params_type){
         graph_title = "Combined average wait times for build and test";
     }
     $.getJSON(resourceURL, function(data) {
-        $('#container').show();
+      $('#container').show();
 
-        graph_data = [];
+      var graphdata = Object.keys(data).map(function(os) {
+        var series = {};
+        series.label = os;
+        series.data = Object.keys(data[os]).map(function(datestr) {      
+          //Calculate datapoint display value
+          var dbg_total = divide(data[os][datestr]["debug_build"],
+                                 data[os][datestr]["debug_build_counter"]) + 
+            divide(data[os][datestr]["debug_test"],
+                   data[os][datestr]["debug_test_counter"]);
+          var opt_total = divide(data[os][datestr]["opt_build"],
+                                 data[os][datestr]["opt_build_counter"]) + 
+            divide(data[os][datestr]["opt_test"],
+                   data[os][datestr]["opt_test_counter"]);
 
-        //Group data by OS
-        for (os in data){
-            //Save each series into a set for display on the chart
-            series = {};
-            series.name = os;
-            series.data = []
-            for(datestr in data[os]){
-              //Calculate datapoint display value
-              dbg_total = divide(data[os][datestr]["debug_build"],data[os][datestr]["debug_build_counter"]) + divide(data[os][datestr]["debug_test"],data[os][datestr]["debug_test_counter"]);
-              opt_total = divide(data[os][datestr]["opt_build"],data[os][datestr]["opt_build_counter"]) + divide(data[os][datestr]["opt_test"],data[os][datestr]["opt_test_counter"]);
-              value = Math.max(dbg_total,opt_total);
-              
-              //Convert from seconds to hours
-              value = to_hours(value);
-              
-              //Form datapoint
-              datapoint = [parseDate(datestr), value];
-              
-              //Push datapoint to the series
-              series['data'].push(datapoint);
-            }
-            //Push each completed series to the overall dataset
-            graph_data.push(series);
+          return [parseDate(datestr), to_hours(Math.max(dbg_total,opt_total))];
+        }).sort(function(a,b) { return a[0]-b[0]; });
+        
+        return series;
+      });
+
+      hide_loading();
+
+      $('#result').append("<h3>Go Faster! - " + graph_title + "</h3><br/>");
+      
+      $.plot($("#container"), graphdata, {
+        xaxis: {
+          mode: "time"
+        },
+        yaxis: {
+          axisLabel: 'Time (Hours)'
+        },
+        series: {
+          lines: { show: true, fill: false, steps: false },
+          points: { show: true }
+        },
+        legend: {
+          position: "nw",
+          hideable: true
         }
-        //Loading is complete!
-        hide_loading();
-
-        //Begin Line Chart
-        var chart;
-        jQuery(document).ready(function() {
-            chart = new Highcharts.Chart({
-                chart: {
-                    renderTo: 'container',
-                    type: 'spline'
-                },
-                title: {
-                    text: 'Go Faster! - '+graph_title
-                },
-                subtitle: {
-                    text: ''
-                },
-                xAxis: {
-                    type: 'datetime',
-                    dateTimeLabelFormats: { // don't display the dummy year
-                        month: '%b %e',
-                        year: '%Y'
-                    }
-                },
-                yAxis: {
-                    title: {
-                        text: 'Average Wait Time (Hours)'
-                    },
-                    min: 0
-                },
-                tooltip: {
-                    formatter: function() {
-                            return '<b>'+ this.series.name +'</b><br/>'+
-                            Highcharts.dateFormat('%b %e, %Y', this.x) +': '+ this.y +' hours';
-                    }
-                },
-                series: graph_data
-            });
-        });
-        //End Line Chart
-    }); //End $.getJSON
+      });
+    }); 
 }
 
 function show_overhead(params_type){
@@ -457,74 +404,48 @@ function show_overhead(params_type){
         graph_title = "Combined average setup/teardown times for test and build";
     }
     $.getJSON(resourceURL, function(data) {
-        $('#container').show();
-        graph_data = [];
+      $('#container').show();
 
-        //Group data by OS
-        for (os in data){
-            //Save each series into a set for display on the chart
-            series = {};
-            series.name = os;
-            series.data = []
-            for(datestr in data[os]){
-                //Calculate datapoint display value
-                dbg_total = divide(data[os][datestr]["debug_build"],data[os][datestr]["debug_build_counter"]) + divide(data[os][datestr]["debug_test"],data[os][datestr]["debug_test_counter"]);
-                opt_total = divide(data[os][datestr]["opt_build"],data[os][datestr]["opt_build_counter"]) + divide(data[os][datestr]["opt_test"],data[os][datestr]["opt_test_counter"]);
-                value = Math.max(dbg_total,opt_total);
+      var graphdata = Object.keys(data).map(function(os) {
+        var series = {};
+        series.label = os;
+        series.data = Object.keys(data[os]).map(function(datestr) {      
+          //Calculate datapoint display value
+          var dbg_total = divide(data[os][datestr]["debug_build"],
+                                 data[os][datestr]["debug_build_counter"]) + 
+            divide(data[os][datestr]["debug_test"],
+                   data[os][datestr]["debug_test_counter"]);
+          var opt_total = divide(data[os][datestr]["opt_build"],
+                                 data[os][datestr]["opt_build_counter"]) + 
+            divide(data[os][datestr]["opt_test"],
+                   data[os][datestr]["opt_test_counter"]);
 
-                //Convert from seconds to hours
-                value = to_hours(value);
-              
-                //Form datapoint
-                datapoint = [parseDate(datestr), value];
-              
-                //Push datapoint to the series
-                series['data'].push(datapoint);
-            }
-            //Push each completed series to the overall dataset
-            graph_data.push(series);
+          return [parseDate(datestr), to_hours(Math.max(dbg_total,opt_total))];
+        }).sort(function(a,b) { return a[0]-b[0]; });
+        
+        return series;
+      });
+
+      hide_loading();
+      $('#result').append("<h3>Go Faster! - " + graph_title + "</h3><br/>");
+      
+      $.plot($("#container"), graphdata, {
+        xaxis: {
+          mode: "time"
+        },
+        yaxis: {
+          axisLabel: 'Time (Hours)'
+        },
+        series: {
+          lines: { show: true, fill: false, steps: false },
+          points: { show: true }
+        },
+        legend: {
+          position: "nw",
+          hideable: true
         }
-        //Loading is complete!
-        hide_loading();
-
-        //Begin Line Chart
-        var chart;
-        jQuery(document).ready(function() {
-            chart = new Highcharts.Chart({
-                chart: {
-                    renderTo: 'container',
-                    type: 'spline'
-                },
-                title: {
-                    text: 'Go Faster! - '+graph_title
-                },
-                subtitle: {
-                    text: ''
-                },
-                xAxis: {
-                    type: 'datetime',
-                    dateTimeLabelFormats: { // don't display the dummy year
-                        month: '%b %e',
-                        year: '%Y'
-                    }
-                },
-                yAxis: {
-                    title: {
-                        text: 'Average Setup+Teardown Time (Hours)'
-                    },
-                    min: 0
-                },
-                tooltip: {
-                    formatter: function() {
-                            return '<b>'+ this.series.name +'</b><br/>'+
-                            Highcharts.dateFormat('%b %e, %Y', this.x) +': '+ this.y +' hours';
-                    }
-                },
-                series: graph_data
-            });
-        });
-        //End Line Chart
-    }); //End $.getJSON
+      });
+    });
 }
 
 function show_mochitests(params_os, params_buildtype){
@@ -670,7 +591,6 @@ function show_mochitests(params_os, params_buildtype){
 
     }); //End $.getJSON()
 } //End show_mochitests
-
 
 function show_buildcharts() {
   show_loading();
