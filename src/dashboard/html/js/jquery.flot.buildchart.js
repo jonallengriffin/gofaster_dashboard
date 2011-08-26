@@ -72,7 +72,6 @@ data: [
         ctx.stroke();
         ctx.textBaseline = "middle";
                 var textlength = ctx.measureText(data[3]).width;
-                console.log(textlength.width);
                 var textpos_x;
                 if (textlength < (x2 - x)) {
                   ctx.textAlign = "center";
@@ -114,7 +113,6 @@ data: [
         {	var x,y,x2;
             x = offset.left + axes.xaxis.p2c(data[0]);
             y = offset.top + axes.yaxis.p2c(data[1]);
-                console.log(data[1]);
             x2 = offset.left + axes.xaxis.p2c(data[2]);
 			if (data.length == 4) 
 			{	drawStepDefault(ctx, series, data, x, y, x2, color, isHighlight);}
