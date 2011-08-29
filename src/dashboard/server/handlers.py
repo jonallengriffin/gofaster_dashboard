@@ -147,7 +147,7 @@ class MochitestHandler(object):
 #Turnaround handler returns total build+test runtime in seconds and the number of tests for each kind
 class TurnaroundHandler(object):
 
-    @templeton.handlers.get_json
+    @templeton.handlers.json_response
     def GET(self, params, body):
         params, body = templeton.handlers.get_request_parms()
 
@@ -185,7 +185,7 @@ class TurnaroundHandler(object):
 
 class EndToEndTimeHandler(object):
 
-    @templeton.handlers.get_json
+    @templeton.handlers.json_response
     def GET(self):
         params, body = templeton.handlers.get_request_parms()
         try:
@@ -225,7 +225,7 @@ class EndToEndTimeHandler(object):
 #Execution Time handler returns average execution time for builds and tests
 class ExecutionTimeHandler(object):
 
-    @templeton.handlers.get_json
+    @templeton.handlers.json_response
     def GET(self):
         params, body = templeton.handlers.get_request_parms()
 
@@ -259,7 +259,7 @@ class ExecutionTimeHandler(object):
 #WaitTime handler returns total test runtime in seconds and the number of tests for each kind
 class WaitTimeHandler(object):
 
-    @templeton.handlers.get_json
+    @templeton.handlers.json_response
     def GET(self):
         params, body = templeton.handlers.get_request_parms()
 
@@ -291,7 +291,7 @@ class WaitTimeHandler(object):
 #Overheadhandler returns setup and teardown times for build, test, or combined
 class OverheadHandler(object):
 
-    @templeton.handlers.get_json
+    @templeton.handlers.json_response
     def GET(self):
         params, body = templeton.handlers.get_request_parms()
 
@@ -332,7 +332,7 @@ def get_build_detail(buildid):
 
 class BuildsHandler(object):
 
-    @templeton.handlers.get_json
+    @templeton.handlers.json_response
     def GET(self):
         summaries = {}
         for summary in get_build_summaries():
@@ -354,7 +354,7 @@ class BuildsHandler(object):
 
 class BuildDataHandler(object):
 
-    @templeton.handlers.get_json
+    @templeton.handlers.json_response
     def GET(self):
         params, body = templeton.handlers.get_request_parms()
 
@@ -367,11 +367,11 @@ class BuildDataHandler(object):
 
 class IsThisBuildFasterJobsHandler(object):
 
-    @templeton.handlers.get_json
+    @templeton.handlers.json_response
     def GET(self):
         return { 'num_pending_jobs': len(itbf.queue.get_copy()) }
 
-    @templeton.handlers.get_json
+    @templeton.handlers.json_response
     def POST(self):
         postdata = web.input()
 

@@ -45,7 +45,6 @@ python_dateutil==1.5 \
 lockfile \
 ordereddict \
 pyes \
-templeton \
 "
 
 MOZAUTOLOG_REPO=http://hg.mozilla.org/users/jgriffin_mozilla.com/mozautolog/
@@ -61,6 +60,10 @@ for I in $MOZAUTOLOG_REPO $MOZAUTOESLIB $ISTHISBUILDFASTER; do
     hg clone $I src/$PKGNAME
     ./bin/easy_install src/$PKGNAME
 done
+
+# Install our own custom copy of templeton
+git clone git://github.com/wlach/templeton.git src/templeton
+./bin/easy_install src/templeton
 
 # Utility scripts to manage the queue
 for I in add-job process-next-job show-pending-jobs clear-jobs; do
