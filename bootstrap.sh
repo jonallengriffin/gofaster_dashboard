@@ -75,3 +75,13 @@ exec \$PYTHON \$SCRIPT_DIR/$I.py \$@
 EOF
     chmod a+x $SCRIPT
 done
+
+# Utility script to run server
+
+cat > ./bin/runserver.sh <<EOF
+#!/bin/sh
+
+SERVER_DIR=\$(dirname \$0)/../src/dashboard/server/
+cd \$SERVER_DIR && ../../../bin/python server.py
+EOF
+chmod a+x ./bin/runserver.sh
