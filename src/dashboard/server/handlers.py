@@ -113,9 +113,10 @@ def get_build_summaries():
     return get_build_data()['summaries']
 
 #Mochitest handler returns mochitest runtimes on given days and builds
-class MochitestHandler(templeton.handlers.JsonHandler):
-    def _GET(self, params, body):
-        #params_array = json.load(str(params))
+class MochitestHandler(object):
+    def GET(self):
+        params, body = templeton.handlers.get_request_parms()
+
         args = {}
         args["date"] = []
         dates = get_dates(params)
@@ -144,8 +145,12 @@ class MochitestHandler(templeton.handlers.JsonHandler):
         return result
 
 #Turnaround handler returns total build+test runtime in seconds and the number of tests for each kind
-class TurnaroundHandler(templeton.handlers.JsonHandler):
-    def _GET(self, params, body):
+class TurnaroundHandler(object):
+
+    @templeton.handlers.get_json
+    def GET(self, params, body):
+        params, body = templeton.handlers.get_request_parms()
+
         target_os = "all"
         try:
             target_os = params["os"][0]
@@ -178,8 +183,11 @@ class TurnaroundHandler(templeton.handlers.JsonHandler):
 
         return return_data
 
-class EndToEndTimeHandler(templeton.handlers.JsonHandler):
-    def _GET(self, params, body):
+class EndToEndTimeHandler(object):
+
+    @templeton.handlers.get_json
+    def GET(self):
+        params, body = templeton.handlers.get_request_parms()
         try:
             mode = params["mode"][0]
         except:
@@ -215,8 +223,12 @@ class EndToEndTimeHandler(templeton.handlers.JsonHandler):
         return { 'end_to_end_times': end_to_end_times }
 
 #Execution Time handler returns average execution time for builds and tests
-class ExecutionTimeHandler(templeton.handlers.JsonHandler):
-    def _GET(self, params, body):
+class ExecutionTimeHandler(object):
+
+    @templeton.handlers.get_json
+    def GET(self):
+        params, body = templeton.handlers.get_request_parms()
+
         try:
             target_os = params["os"][0]
         except:
@@ -245,8 +257,12 @@ class ExecutionTimeHandler(templeton.handlers.JsonHandler):
         return return_data
 
 #WaitTime handler returns total test runtime in seconds and the number of tests for each kind
-class WaitTimeHandler(templeton.handlers.JsonHandler):
-    def _GET(self, params, body):
+class WaitTimeHandler(object):
+
+    @templeton.handlers.get_json
+    def GET(self):
+        params, body = templeton.handlers.get_request_parms()
+
         try:
             target_os = params["os"][0]
         except:
@@ -273,8 +289,12 @@ class WaitTimeHandler(templeton.handlers.JsonHandler):
         return return_data
 
 #Overheadhandler returns setup and teardown times for build, test, or combined
-class OverheadHandler(templeton.handlers.JsonHandler):
-    def _GET(self, params, body):
+class OverheadHandler(object):
+
+    @templeton.handlers.get_json
+    def GET(self):
+        params, body = templeton.handlers.get_request_parms()
+
         try:
             target_os = params["os"][0]
         except:
@@ -310,9 +330,10 @@ def get_build_detail(buildid):
              'revision': buildevents[0]['revision'][0:8],
              'buildevents': buildevents }
 
-class BuildsHandler(templeton.handlers.JsonHandler):
-    def _GET(self, params, body):
+class BuildsHandler(object):
 
+    @templeton.handlers.get_json
+    def GET(self):
         summaries = {}
         for summary in get_build_summaries():
             date = summary['submitted_at']
@@ -331,8 +352,12 @@ class BuildsHandler(templeton.handlers.JsonHandler):
                                            'builds': summaries[b] }, 
                                reversed(sorted(summaries.keys()))) }
 
-class BuildDataHandler(templeton.handlers.JsonHandler):
-    def _GET(self, params, body):
+class BuildDataHandler(object):
+
+    @templeton.handlers.get_json
+    def GET(self):
+        params, body = templeton.handlers.get_request_parms()
+
         buildid = params["buildid"][0]
         summary = filter(lambda s: s['uid'] == buildid, get_build_summaries())[0]
         events = sorted(filter(lambda e: e['uid'] == buildid, get_build_events()), 
@@ -340,8 +365,10 @@ class BuildDataHandler(templeton.handlers.JsonHandler):
 
         return { 'summary': summary, 'events': events }
 
-class IsThisBuildFasterJobsHandler(templeton.handlers.JsonHandler):
-    def _GET(self, params, body):
+class IsThisBuildFasterJobsHandler(object):
+
+    @templeton.handlers.get_json
+    def GET(self):
         return { 'num_pending_jobs': len(itbf.queue.get_copy()) }
 
     @templeton.handlers.get_json
