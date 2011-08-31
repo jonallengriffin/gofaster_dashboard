@@ -37,6 +37,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
+from collections import defaultdict
 import sys
 import csv
 import dateutil.parser
@@ -53,14 +54,24 @@ def to_seconds(stopwatch_time):
     (hours, minutes, seconds) = map(lambda s: int(s), stopwatch_time.split(":"))
     return seconds + minutes * 60 + hours * 60 * 60 + days * 60 * 60 * 24
 
+def suite_event_key(row):
+    return "".join([row["uid"],row["suitename"],row["jobtype"],row["os"]])
+
 f = open(sys.argv[1], 'r')
 reader = csv.DictReader(f)
 
 events = []
+suite_events = defaultdict(lambda: defaultdict(int))
+
 for row in reader:
     # ignore results > 30 days old
     submitted_at = dateutil.parser.parse(unicode(row["submitted_at"]))
     if (datetime.datetime.today() - submitted_at).days > 30:
+        continue
+
+    # if it has a suitename, only process it if it's the first event for that suite
+    # (ignores tests run more than once for nightly builds)
+    if len(row['suitename']) > 0 and suite_events[suite_event_key(row)]:
         continue
 
     event = {}
@@ -75,8 +86,9 @@ for row in reader:
     else:
         (event['buildtype'], event['jobtype']) = row["jobtype"].split(" ")
 
-    if row['suitename']:
+    if len(row['suitename']) > 0:
         event['suitename'] = row['suitename']
+        suite_events[suite_event_key(row)] = 1
 
     event["work_time"] = to_seconds(row["work_time"])
     event["wait_time"] = to_seconds(row["wait_time"])
