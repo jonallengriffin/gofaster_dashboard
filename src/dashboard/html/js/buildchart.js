@@ -48,7 +48,10 @@ $(function() {
       // get job description
       var jobtype = event.jobtype;
       if (event.jobtype !== "talos") {
-        jobtype = event.buildtype + " " + event.jobtype;
+        jobtype = [ event.buildtype, event.jobtype ].join(" ");
+      }
+      if (event.suitename) {
+        jobtype += " (" + event.suitename + ")";
       }
       var desc = event.os + " " + jobtype + " " + ((event.finish_time - event.start_time)/60.0).toFixed(3) + " min";
       series[series.length] = [get_relative_time(event.start_time), i, get_relative_time(event.finish_time), desc];

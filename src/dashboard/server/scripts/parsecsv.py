@@ -75,6 +75,9 @@ for row in reader:
     else:
         (event['buildtype'], event['jobtype']) = row["jobtype"].split(" ")
 
+    if row['suitename']:
+        event['suitename'] = row['suitename']
+
     event["work_time"] = to_seconds(row["work_time"])
     event["wait_time"] = to_seconds(row["wait_time"])
     event["elapsed"] = to_seconds(row["elapsed"])
