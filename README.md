@@ -9,7 +9,7 @@ https://wiki.mozilla.org/ReleaseEngineering/BuildFaster
 
 # How to configure
 
-At the moment, this is a two step process. First, run the bootstrap.sh script
+At the moment, this is a three step process. First, run the bootstrap.sh script
 from the root directory of this project:
 
     ./bootstrap.sh
@@ -20,9 +20,14 @@ up and running)
 
     cd src/dashboard/server && cp settings.cfg.example settings.cfg && cd ../../../
 
-To run the server in test mode, do the following:
+You'll need to process a copy of release engineering's build data for most of the
+views to work:
 
-    cd src/dashboard/server && ../../../bin/python server.py
+    ./bin/fetch-and-process-builddata.sh
+
+To run the server in test mode, do the following from the root directory:
+
+    ./bin/runserver.sh
 
 <FIXME: Describe how to deploy server>
 
