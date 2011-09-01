@@ -60,15 +60,15 @@ data: [
 			ctx.lineWidth = series.gantt.barheight;
 			ctx.strokeStyle = "rgb(0,0,0)";
 			ctx.moveTo(x, y);
-			ctx.lineTo(x2, y);
-			ctx.stroke();
+			//ctx.lineTo(x2, y);
+			//ctx.stroke();
 		}
         ctx.beginPath();
         ctx.strokeStyle = color;
         ctx.lineWidth = series.gantt.barheight - 2;
         ctx.lineCap = "butt";
-		ctx.moveTo(x + 1, y);
-        ctx.lineTo(x2 - 1, y);
+        ctx.moveTo(x, y);
+        ctx.lineTo(x2, y);
         ctx.stroke();
         ctx.textBaseline = "middle";
                 var textlength = ctx.measureText(data[3]).width;
