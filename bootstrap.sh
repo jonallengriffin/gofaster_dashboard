@@ -78,32 +78,3 @@ exec \$PYTHON \$SCRIPT_DIR/$I.py \$@
 EOF
     chmod a+x $SCRIPT
 done
-
-# Utility script to run server
-
-cat > ./bin/runserver.sh <<EOF
-#!/bin/sh
-
-set -e
-
-SERVER_DIR=\$(dirname \$0)/../src/dashboard/server/
-cd \$SERVER_DIR && ../../../bin/python server.py
-EOF
-
-cat > ./bin/fetch-and-process-builddata.sh <<EOF
-#!/bin/bash
-
-set -e
-
-export PATH=\$(dirname \$0):\$PATH
-
-SCRIPT_DIR=\$(dirname \$0)/../src/dashboard/server/scripts/
-DATA_DIR=\$(dirname \$0)/../src/dashboard/server/data/
-CSV_OUTPUT=\$DATA_DIR/buildfaster.csv
-PKL_OUTPUT=\$DATA_DIR/buildfaster.pkl
-
-wget http://build.mozilla.org/builds/buildfaster.csv.gz -O - | gunzip > \$CSV_OUTPUT
-python \$SCRIPT_DIR/parsecsv.py \$CSV_OUTPUT \$PKL_OUTPUT
-EOF
-
-chmod a+x ./bin/runserver.sh ./bin/fetch-and-process-builddata.sh
