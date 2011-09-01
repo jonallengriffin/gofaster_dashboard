@@ -65,6 +65,10 @@ render = web.template.render('../templates')
 #db = web.database(dbn='mysql', db='dbname', user='user', pw='password')
 #results = db.query("SELECT * FROM steps limit 1")
 
+# Get YYYY-MM-DD from unix time (seconds since 1970)
+def get_datestr(unixtime):
+    return datetime.fromtimestamp(unixtime).strftime('%Y-%m-%d')
+
 # Gets dates from parameters and parses to correct format
 # Returns tuple with startdate and enddate parsed from URL string
 def get_dates(params, days_apart=7):
@@ -170,7 +174,7 @@ class TurnaroundHandler(object):
             if target_os != "all" and datapoint_os != target_os:
                 continue
 
-            datapoint_date = entry["submitted_at"]
+            datapoint_date = get_datestr(entry["submitted_at"])
             datapoint_os = entry["os"]
             if datapoint_os == "win7" or datapoint_os == "winxp":                
                 datapoint_os = "win32" # for overall time, win7/winxp tests are win32 datapoints
@@ -199,10 +203,10 @@ class EndToEndTimeHandler(object):
             end_to_end_times = defaultdict(lambda: [])
             for os in set(sum(map(lambda s: s['time_taken_per_os'].keys(), 
                                   summaries), [])):
-                for date in sorted(set(map(lambda s: s['submitted_at'], summaries))):
+                for date in sorted(set(map(lambda s: get_datestr(s['submitted_at']), summaries))):
                     count = 0.0
                     total = 0
-                    for summary in filter(lambda s: s['submitted_at']==date, summaries):
+                    for summary in filter(lambda s: get_datestr(s['submitted_at'])==date, summaries):
                         if summary['time_taken_per_os'].get(os):
                             total += summary['time_taken_per_os'][os]
                             count += 1
@@ -212,10 +216,10 @@ class EndToEndTimeHandler(object):
 
 
         end_to_end_times = []
-        for date in sorted(set(map(lambda s: s['submitted_at'], summaries))):
+        for date in sorted(set(map(lambda s: get_datestr(s['submitted_at']), summaries))):
             count = 0.0
             total = 0
-            for summary in filter(lambda s: s['submitted_at']==date, summaries):
+            for summary in filter(lambda s: get_datestr(s['submitted_at'])==date, summaries):
                 total += summary['time_taken_overall']
                 count += 1
             end_to_end_times.append([date, total/count])
@@ -245,7 +249,7 @@ class ExecutionTimeHandler(object):
             if entry["jobtype"] == "talos":
                 continue
 
-            datapoint_date = entry["submitted_at"]
+            datapoint_date = get_datestr(entry["submitted_at"])
             datapoint_os = entry["os"]
             datapoint_type = "%s_%s" % (entry["buildtype"], entry["jobtype"])
             datapoint_counter = datapoint_type + "_counter"
@@ -277,7 +281,7 @@ class WaitTimeHandler(object):
             if entry["jobtype"] == "talos":
                 continue
 
-            datapoint_date = entry["submitted_at"]
+            datapoint_date = get_datestr(entry["submitted_at"])
             datapoint_os = entry["os"]
             datapoint_type = "%s_%s" % (entry["buildtype"], entry["jobtype"])
             datapoint_counter = datapoint_type + "_counter"
@@ -309,7 +313,7 @@ class OverheadHandler(object):
             if entry["jobtype"] == "talos":
                 continue
 
-            datapoint_date = entry["submitted_at"]
+            datapoint_date = get_datestr(entry["submitted_at"])
             datapoint_os = entry["os"]
             datapoint_type = "%s_%s" % (entry["buildtype"], entry["jobtype"])
             datapoint_counter = datapoint_type + "_counter"
@@ -326,7 +330,7 @@ def get_build_detail(buildid):
     buildevents = sorted(filter(lambda e: e['uid'] == buildid, get_build_events()), 
                          key=lambda e: e['start_time'])
     
-    return { 'date': buildevents[0]['submitted_at'],
+    return { 'date': get_datestr(buildevents[0]['submitted_at']),
              'revision': buildevents[0]['revision'][0:8],
              'buildevents': buildevents }
 
@@ -336,7 +340,7 @@ class BuildsHandler(object):
     def GET(self):
         summaries = {}
         for summary in get_build_summaries():
-            date = summary['submitted_at']
+            date = get_datestr(summary['submitted_at'])
             if not summaries.get(date):
                 summaries[date] = []
             summaries[date].append({'uid': summary['uid'], 

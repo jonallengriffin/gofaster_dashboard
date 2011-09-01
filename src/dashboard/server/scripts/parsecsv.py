@@ -77,7 +77,7 @@ for row in reader:
     event = {}
     event["uid"] = row["uid"]
     event["revision"] = row["revision"]
-    event["submitted_at"] = submitted_at.strftime("%Y-%m-%d")
+    event["submitted_at"] = mktime(submitted_at.timetuple())
     event["start_time"] = mktime(dateutil.parser.parse(unicode(row["start_time"])).timetuple())
     event["finish_time"] = mktime(dateutil.parser.parse(unicode(row["finish_time"])).timetuple())
 
