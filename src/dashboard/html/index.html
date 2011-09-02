@@ -74,11 +74,8 @@
             </ul>
         </div>
         <div id="rightcontent">
-            <div id="result"></div>
-            <div id="errors"></div>
-            <div id="container" style="display:none;"></div>
         </div>
-            <br style="clear:both"/>
+        <br style="clear:both"/>
         </div>
     </div>
 
@@ -101,6 +98,14 @@
         <br/>
         <p>Built by <a href="http://wiki.mozilla.org/Auto-tools">Mozilla Firefox Automation & Tools Engineering</a>. Source available on <a href="https://github.com/wlach/gofaster_dashboard">github</a>.</p>
       </div>
+    </script>
+
+    <script id="graph" type="text/html">
+      <div id="result">
+        <h3>Go Faster! - {{graph_title}}</h3><br/>
+      </div>
+      <div id="errors"></div>
+      <div id="container"></div>
     </script>
 
     <script id="buildlist" type="text/html">

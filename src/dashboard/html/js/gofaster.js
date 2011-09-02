@@ -50,14 +50,7 @@
 
 function show_loading(){
     //Clear the display divs and show loading gif
-  $('#result').html("<div id='loading' style='margin:0 auto; padding-top:20px;'><center><span style='font-weight:200; font-size:200%;'>Loading...</span><br/><img height='32' width='32' src='images/loading.gif' alt='' /></center></div>");
-  $('#errors').html("");
-  $('#container').hide();
-}
-
-function hide_loading(){
-    //Hide loading div after page loads
-    $('#loading').html("")
+  $('#rightcontent').html("<div id='result'><div id='loading' style='margin:0 auto; padding-top:20px;'><center><span style='font-weight:200; font-size:200%;'>Loading...</span><br/><img height='32' width='32' src='images/loading.gif' alt='' /></center></div></div>");
 }
 
 function sortPairs(a,b){
@@ -131,10 +124,6 @@ function show_turnaround(type) {
   
   //Request data from api/turnaround and do stuff
   $.getJSON('api/turnaround', function(data) {
-
-    //Loading is complete!
-    hide_loading();
-    $('#container').show();
 
     if (type === "total") {
       $('#result').append("<h3>Go Faster! - Overall Build & Test Turnaround</h3><br/>");
@@ -230,14 +219,13 @@ function show_endtoend(mode) {
   show_loading(); //Show loading div to keep user happy
 
   $.getJSON('api/endtoendtimes?mode=' + mode, function(data) {
-    hide_loading();
-    $('#container').show();
-;    
     var end_to_end_times = data.end_to_end_times;
     
     var graphdata;
+    var graphTitle;
     if (mode === "os") {
-      $('#result').append("<h3>Go Faster! - Average End to End Performance per OS</h3><br/>");
+      graphTitle = "Average End to End Performance per OS";
+      $('#result').append("<h3>Go Faster! - </h3><br/>");
       graphdata = Object.keys(end_to_end_times).map(function(os) {
         var series = {};
         series.label = os;
@@ -247,7 +235,7 @@ function show_endtoend(mode) {
         return series;
       });
     } else {
-      $('#result').append("<h3>Go Faster! - Average End to End Performance</h3><br/>");
+      graphTitle = "Average End to End Performance";
       var series = {};
       series.data = end_to_end_times.map(function(datapoint) {
         return [parseDate(datapoint[0]), to_hours(datapoint[1])];
@@ -255,7 +243,9 @@ function show_endtoend(mode) {
 
       graphdata = [ series ];
     }
-    
+
+    $('#rightcontent').html(ich.graph({ graph_title: graphTitle }));
+
     $.plot($("#container"), graphdata, {
       xaxis: {
         mode: "time"
@@ -278,19 +268,18 @@ function show_endtoend(mode) {
 function show_executiontime(params_type){
   //Build and Test Execution Dashboard
   show_loading(); //Show loading div to keep user happy
-  
+
+  var graphTitle;
+
   if (params_type) {
     resourceURL = 'api/executiontime?type='+params_type;
-    graph_title = "Average execution times for "+params_type;
+    graphTitle = "Average execution times for "+params_type;
   } else {
     resourceURL = 'api/waittime';
-    graph_title = "Combined average execution times for build and test";
+    graphTitle = "Combined average execution times for build and test";
   }
-  
+
   $.getJSON(resourceURL, function(data) {
-    hide_loading();
-    $('#container').show();
-    
     var graphdata = Object.keys(data).map(function(os) {
       var series = {};
       series.label = os;
@@ -310,9 +299,7 @@ function show_executiontime(params_type){
       return series;
     });
 
-    hide_loading();
-
-    $('#result').append("<h3>Go Faster! - " + graph_title + "</h3><br/>");
+    $('#rightcontent').html(ich.graph({ graph_title: graphTitle }));
 
     $.plot($("#container"), graphdata, {
       xaxis: {
@@ -337,16 +324,17 @@ function show_waittime(params_type){
     //Build Wait Dashboard
     show_loading(); //Show loading div to keep user happy
 
+    var graphTitle;
+
     //Request data from api/turnaround and do stuff
     if(params_type){
         resourceURL = 'api/waittime?type='+params_type;
-        graph_title = "Average wait times for "+params_type;
+        graphTitle = "Average wait times for "+params_type;
     }else{
         resourceURL = 'api/waittime';
-        graph_title = "Combined average wait times for build and test";
+        graphTitle = "Combined average wait times for build and test";
     }
     $.getJSON(resourceURL, function(data) {
-      $('#container').show();
 
       var graphdata = Object.keys(data).map(function(os) {
         var series = {};
@@ -368,10 +356,8 @@ function show_waittime(params_type){
         return series;
       });
 
-      hide_loading();
+      $('#rightcontent').html(ich.graph({ graph_title: graphTitle }));
 
-      $('#result').append("<h3>Go Faster! - " + graph_title + "</h3><br/>");
-      
       $.plot($("#container"), graphdata, {
         xaxis: {
           mode: "time"
@@ -395,16 +381,17 @@ function show_overhead(params_type){
     //Setup and Teardown Averages Dashboard
     show_loading(); //Show loading div to keep user happy
 
+    var graphTitle;
+
     //Request data from api/turnaround and do stuff
     if(params_type){
         resourceURL = 'api/overhead?type='+params_type;
-        graph_title = "Average setup/teardown times for "+params_type;
+        graphTitle = "Average setup/teardown times for "+params_type;
     }else{
         resourceURL = 'api/overhead';
-        graph_title = "Combined average setup/teardown times for test and build";
+        graphTitle = "Combined average setup/teardown times for test and build";
     }
     $.getJSON(resourceURL, function(data) {
-      $('#container').show();
 
       var graphdata = Object.keys(data).map(function(os) {
         var series = {};
@@ -426,8 +413,7 @@ function show_overhead(params_type){
         return series;
       });
 
-      hide_loading();
-      $('#result').append("<h3>Go Faster! - " + graph_title + "</h3><br/>");
+      $('#rightcontent').html(ich.graph({ graph_title: graphTitle }));
       
       $.plot($("#container"), graphdata, {
         xaxis: {
@@ -451,8 +437,6 @@ function show_overhead(params_type){
 function show_buildcharts() {
   show_loading();
   $.getJSON("api/builds/", function(data) {
-    hide_loading();
-    
     var all_summaries = data['builds'];
 
     // reformat time/revision to look decent in summary form +
@@ -473,17 +457,14 @@ function show_buildcharts() {
       });
     });
 
-    $('#result').replaceWith(ich.buildlist({ summaries: all_summaries }));
+    $('#rightcontent').html(ich.buildlist({ summaries: all_summaries }));
   });
 }
            
 function show_isthisbuildfaster() {
   show_loading();
   $.getJSON("api/itbf/jobs/", function(data) {
-
-    hide_loading();
-
-    $('#result').replaceWith(ich.itbf_form({ num_itbf_jobs: data['num_pending_jobs'] }));
+    $('#rightcontent').html(ich.itbf_form({ num_itbf_jobs: data['num_pending_jobs'] }));
     $("form#itbf_form").submit(function() {   
       $.ajax({
         type: 'POST',
@@ -509,13 +490,10 @@ function show_isthisbuildfaster() {
 }
 
 $(function() {
-  $('#result').replaceWith(ich.index());
   var router = Router({
-    '': {
+    '/': {
       on: function() {
-        $('#result').replaceWith(ich.index());
-        $('#errors').html("");
-        $('#container').html("");
+        $('#rightcontent').html(ich.index());
       }
     },
     '/turnaround': {
@@ -550,5 +528,5 @@ $(function() {
     '/isthisbuildfaster': {
       on: show_isthisbuildfaster
     }
-  }).init();
+  }).init('/');
 });
