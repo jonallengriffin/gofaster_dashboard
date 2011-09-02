@@ -387,7 +387,7 @@ class BuildDataHandler(object):
 
         buildid = params["buildid"][0]
         summary = filter(lambda s: s['uid'] == buildid, get_build_summaries())[0]
-        events = sorted(filter(lambda e: e['uid'] == buildid, get_build_events()), 
+        events = sorted(filter(lambda e: e['uid'] == buildid, get_build_events(0)), 
                              key=lambda e: e['start_time'])
 
         return { 'summary': summary, 'events': events }
