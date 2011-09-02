@@ -44,7 +44,8 @@ function show_graph(data) {
       mode: "time"
     },
     yaxis: {
-      axisLabel: 'Time (Hours)'
+      axisLabel: 'Time (Hours)',
+      min: 0
     },
     series: {
       lines: { show: true, fill: false, steps: false },
