@@ -64,11 +64,6 @@ events = []
 suite_events = defaultdict(lambda: defaultdict(int))
 
 for row in reader:
-    # ignore results > 30 days old
-    submitted_at = dateutil.parser.parse(unicode(row["submitted_at"]))
-    if (datetime.datetime.today() - submitted_at).days > 30:
-        continue
-
     # if it has a suitename, only process it if it's the first event for that suite
     # (ignores tests run more than once for nightly builds)
     if len(row['suitename']) > 0 and suite_events[suite_event_key(row)]:
@@ -77,7 +72,7 @@ for row in reader:
     event = {}
     event["uid"] = row["uid"]
     event["revision"] = row["revision"]
-    event["submitted_at"] = mktime(submitted_at.timetuple())
+    event["submitted_at"] = mktime(dateutil.parser.parse(unicode(row["submitted_at"])).timetuple())
     event["start_time"] = mktime(dateutil.parser.parse(unicode(row["start_time"])).timetuple())
     event["finish_time"] = mktime(dateutil.parser.parse(unicode(row["finish_time"])).timetuple())
 

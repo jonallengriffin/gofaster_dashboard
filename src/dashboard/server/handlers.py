@@ -110,8 +110,12 @@ def get_build_data():
         last_parsed_buildfaster_data = mtime
     return buildfaster_data
 
-def get_build_events():
-    return get_build_data()['events']
+def get_build_events(range):
+    events = get_build_data()['events']
+    if range > 0:
+        events = filter(lambda e: (datetime.today() - datetime.fromtimestamp(e['submitted_at'])).days < range,
+                        events)
+    return events
 
 def get_build_summaries():
     return get_build_data()['summaries']
@@ -196,8 +200,15 @@ class EndToEndTimeHandler(object):
             mode = params["mode"][0]
         except:
             mode = "average"
-        print mode
+        try:
+            range = int(params["range"][0])
+        except:
+            range = 0
+
         summaries = get_build_summaries()
+        if range > 0:
+            summaries = filter(lambda s: (datetime.today() - datetime.fromtimestamp(s['submitted_at'])).days < range,
+                               summaries)
 
         if mode == "os":
             end_to_end_times = defaultdict(lambda: [])
@@ -210,7 +221,8 @@ class EndToEndTimeHandler(object):
                         if summary['time_taken_per_os'].get(os):
                             total += summary['time_taken_per_os'][os]
                             count += 1
-                    end_to_end_times[os].append([date, total/count])
+                    if count > 0:
+                        end_to_end_times[os].append([date, total/count])
 
             return { 'end_to_end_times': end_to_end_times }
 
@@ -236,26 +248,29 @@ class ExecutionTimeHandler(object):
         try:
             target_os = params["os"][0]
         except:
-
             target_os = "all"
         try:
             show_type = params["type"][0]
         except:
             show_type = "all"
+        try:
+            range = int(params["range"][0])
+        except:
+            range = 0
 
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-        for entry in get_build_events():
+        for event in get_build_events(range):
             # Skip talos
-            if entry["jobtype"] == "talos":
+            if event["jobtype"] == "talos":
                 continue
 
-            datapoint_date = get_datestr(entry["submitted_at"])
-            datapoint_os = entry["os"]
-            datapoint_type = "%s_%s" % (entry["buildtype"], entry["jobtype"])
+            datapoint_date = get_datestr(event["submitted_at"])
+            datapoint_os = event["os"]
+            datapoint_type = "%s_%s" % (event["buildtype"], event["jobtype"])
             datapoint_counter = datapoint_type + "_counter"
 
-            if show_type == "all" or show_type==entry["jobtype"]:
-                return_data[datapoint_os][datapoint_date][datapoint_type] += entry["work_time"]
+            if show_type == "all" or show_type==event["jobtype"]:
+                return_data[datapoint_os][datapoint_date][datapoint_type] += event["work_time"]
                 return_data[datapoint_os][datapoint_date][datapoint_counter] += 1
 
         return return_data
@@ -275,9 +290,13 @@ class WaitTimeHandler(object):
             show_type = params["type"][0]
         except:
             show_type = "all"
+        try:
+            range = int(params["range"][0])
+        except:
+            range = 0
 
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-        for entry in get_build_events():
+        for entry in get_build_events(range):
             if entry["jobtype"] == "talos":
                 continue
 
@@ -307,9 +326,13 @@ class OverheadHandler(object):
             show_type = params["type"][0]
         except:
             show_type = "all"
+        try:
+            range = int(params["range"][0])
+        except:
+            range = 0
 
         return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-        for entry in get_build_events():
+        for entry in get_build_events(range):
             if entry["jobtype"] == "talos":
                 continue
 

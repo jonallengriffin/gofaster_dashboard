@@ -52,14 +52,14 @@
             <a href="#"><div id="logolink"></div></a>
             <h2>Metrics</h2>
             <ul>
-              <li><a href="#/endtoend/average">End to End Times (average)</a></li>
-              <li><a href="#/endtoend/os">End to End Times (per OS)</a></li>
-              <li><a href="#/executiontime/build">Avg Build Time</a></li>
-              <li><a href="#/executiontime/test">Avg Test Time</a></li>
-              <li><a href="#/waittime/build">Build Machine Wait</a></li>
-              <li><a href="#/waittime/test">Test Machine Wait</a></li>
-              <li><a href="#/overhead/build">Build Setup & Teardown</a></li>
-              <li><a href="#/overhead/test">Test Setup & Teardown</a></li>
+              <li><a href="#/endtoend/average/30">End to End Times (average)</a></li>
+              <li><a href="#/endtoend/os/30">End to End Times (per OS)</a></li>
+              <li><a href="#/executiontime/build/30">Avg Build Time</a></li>
+              <li><a href="#/executiontime/test/30">Avg Test Time</a></li>
+              <li><a href="#/waittime/build/30">Build Machine Wait</a></li>
+              <li><a href="#/waittime/test/30">Test Machine Wait</a></li>
+              <li><a href="#/overhead/build/30">Build Setup & Teardown</a></li>
+              <li><a href="#/overhead/test/30">Test Setup & Teardown</a></li>
             </ul>
             <br/>
             <h2>Tools</h2>
@@ -81,7 +81,7 @@
     <script src="js/jquery.flot.axislabels.js"></script>
     <script src="js/jquery.flot.hiddengraphs.js"></script>
     <script src="js/SS.min.js"></script>
-    <script src="js/gofaster.js"></script>    
+    <script src="js/gofaster.js"></script>
 
     <script id="index" type="text/html">
       <div id="result">
@@ -95,70 +95,80 @@
       </div>
     </script>
 
+    <script id="loading" class="partial" type="text/html">
+      <div id="loading" style="margin:0 auto; padding-top:20px;">
+        <center><span style="font-weight:200; font-size:200%;">Loading...</span><br/><img height="32" width="32" src="images/loading.gif" alt=""/></center>
+      </div>
+    </script>
+
     <script id="graph" type="text/html">
       <div id="result">
-        <h3>Go Faster! - {{title}}</h3><br/>
+        <h3>Go Faster! - {{title}}</h3>
+        <br/>
+        <div id="container">
+          {{>loading}}
+        </div>
+        <br/>
+        <label>Range:</label>
+        <select id="range" type="text" text-align="right">
+          <option id="range30" value="30">Last 30 days</option>
+          <option id="range60" value="60">Last 60 days</option>
+          <option id="rangeall" value="all">All</option>
+        </select>
       </div>
-      <div id="errors"></div>
-      <div id="container"></div>
+
     </script>
 
-    <script id="buildlist" type="text/html">
+    <script id="dialog" type="text/html">
       <div id="result">
-        <h3>Build charts</h3> 
+        <h3>{{title}}</h3>
         <br/>
-        <p>Click on a build to get its buildchart. Buildcharts will open in a new tab.</p>
-        <br/>
-        <ul>
-          {{#summaries}}
-          <li>{{date}}</li>
-          <ul level="2">
-            {{#builds}}
-            <li><a href="buildchart.html?buildid={{uid}}" target="_blank">{{revision}}</a> ({{time_taken}} hours, last event: {{last_event}})</li>
-            {{/builds}}
-          </ul>
-          {{/summaries}}
-        </ul>
+        <div id="dialog_content">
+          {{>loading}}
+        </div>
       </div>
+    </script>
+
+    <script id="buildcharts" type="text/html">
+      <p>Click on a build to get its buildchart. Buildcharts will open in a new tab.</p>
+      <br/>
+      <ul>
+        {{#summaries}}
+        <li>{{date}}</li>
+        <ul level="2">
+          {{#builds}}
+          <li><a href="buildchart.html?buildid={{uid}}" target="_blank">{{revision}}</a> ({{time_taken}} hours, last event: {{last_event}})</li>
+          {{/builds}}
+        </ul>
+        {{/summaries}}
+      </ul>
    </script>
 
-    <script id="itbf_header" class="partial" type="text/html">
-        <h3>Is this build faster?</h3>
-        <br/>
-    </script>
-
     <script id="itbf_form" type="text/html">
-      <div id="result">
-        {{>itbf_header}}
-        <p>This tool will compare the test times for your tree/revision against a recent 
-          mozilla-central build. Results will be delivered to your email address.</p>
+      <p>This tool will compare the test times for your tree/revision against a recent
+        mozilla-central build. Results will be delivered to your email address.</p>
+      <br/>
+      <form id="itbf_form" method="post">
+        <p><label>Tree:</label><select id="tree" type="text" required><option>try</option><option>mozilla-central</option></select></p>
+        <p><label>Compare revision:</label><input id="revision" type="text" required></p>
+        <p><label>Committer email:</label><input id="submitter_email" type="email" required></p>
+        <p><label>Your email:</label><input id="return_email" type="email" required></p>
         <br/>
-        <form id="itbf_form" method="post">
-          <p><label>Tree:</label><select id="tree" type="text" required><option>try</option><option>mozilla-central</option></select></p>
-          <p><label>Compare revision:</label><input id="revision" type="text" required></p>
-          <p><label>Committer email:</label><input id="submitter_email" type="email" required></p>
-          <p><label>Your email:</label><input id="return_email" type="email" required></p>
-          <br/>
-          <input type="submit" id="add-itbf-job" value="Submit" />
-        </form>
-      </div>
+        <input type="submit" id="add-itbf-job" value="Submit" />
+      </form>
+      <br/>
+      <p>There are currently {{ num_itbf_jobs }} jobs pending.</p>
     </script>
 
     <script id="itbf_submitted" type="text/html">
-      <div id="result">
-        {{>itbf_header}}
-        <p>Thanks for submitting your request! It generally takes a few minutes to process these, so please be a bit patient. 
-          I hope the results will prove worth the wait. There are now {{ num_itbf_jobs }} requests pending (including yours).</p>
-        <br/>
-        <p><a href="#/isthisbuildfaster" onclick="show_isthisbuildfaster()">Submit another?</a></p>
-      </div>
+      <p>Thanks for submitting your request! It generally takes a few minutes to process these, so please be a bit patient. 
+        I hope the results will prove worth the wait. There are now {{ num_itbf_jobs }} requests pending (including yours).</p>
+      <br/>
+      <p><a href="#/isthisbuildfaster" onclick="show_isthisbuildfaster()">Submit another?</a></p>
     </script>
 
     <script id="itbf_error" type="text/html">
-      <div id="result">
-        {{>itbf_header}}
-        <p>Oh noes! There was an error processing your request. Please <a href="http://https://wiki.mozilla.org/Auto-tools">let us know</a> that this happened.</p>
-      </div>
+      <p>Oh noes! There was an error processing your request. Please <a href="http://https://wiki.mozilla.org/Auto-tools">let us know</a> that this happened.</p>
     </script>
 </body>
 </html>

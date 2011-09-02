@@ -36,13 +36,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function show_loading(){
-    //Clear the display divs and show loading gif
-  $('#rightcontent').html("<div id='result'><div id='loading' style='margin:0 auto; padding-top:20px;'><center><span style='font-weight:200; font-size:200%;'>Loading...</span><br/><img height='32' width='32' src='images/loading.gif' alt='' /></center></div></div>");
-}
-
-function show_graph(title, data) {
-  $('#rightcontent').html(ich.graph({ title: title }));
+function show_graph(data) {
+  $('#container').html(null);
 
   $.plot($("#container"), data, {
     xaxis: {
@@ -59,6 +54,14 @@ function show_graph(title, data) {
       position: "nw",
       hideable: true
     }
+  });
+}
+
+function update_range_selector(endpoint, type, range) {
+  $("#range" + range).attr("selected", "true");
+  $("#range").change(function() {
+    console.log("Range is now: " + $(this).val());
+    window.location.hash = '/' + [ endpoint, type, $(this).val() ].join("/");
   });
 }
 
@@ -87,17 +90,14 @@ function to_hours(value){
 
 //Each function below represents a graph to be displayed
 
-function show_endtoend(mode) {
-  show_loading(); //Show loading div to keep user happy
+function show_endtoend(mode, range) {
+  $('#rightcontent').html(ich.graph({ title: mode === "os" ? "Average End to End Performance per OS" : "Average End to End Performance" }));
+  update_range_selector('endtoend', mode, range);
 
-  $.getJSON('api/endtoendtimes?mode=' + mode, function(data) {
+  $.getJSON('api/endtoendtimes?mode=' + mode + "&range=" + range, function(data) {
     var end_to_end_times = data.end_to_end_times;
-    
     var graphdata;
-    var graphtitle;
     if (mode === "os") {
-      graphtitle = "Average End to End Performance per OS";
-      $('#result').append("<h3>Go Faster! - </h3><br/>");
       graphdata = Object.keys(end_to_end_times).map(function(os) {
         var series = {};
         series.label = os;
@@ -107,7 +107,6 @@ function show_endtoend(mode) {
         return series;
       });
     } else {
-      graphtitle = "Average End to End Performance";
       var series = {};
       series.data = end_to_end_times.map(function(datapoint) {
         return [parseDate(datapoint[0]), to_hours(datapoint[1])];
@@ -116,25 +115,16 @@ function show_endtoend(mode) {
       graphdata = [ series ];
     }
 
-    show_graph(graphtitle, graphdata);
+    show_graph(graphdata);
   });
 }
 
-function show_executiontime(params_type){
-  //Build and Test Execution Dashboard
-  show_loading(); //Show loading div to keep user happy
+//Build and Test Execution Dashboard
+function show_executiontime(type, range) {
+  $('#rightcontent').html(ich.graph({ title: "Average execution times for "+type }));
+  update_range_selector('executiontime', type, range);
 
-  var graphtitle;
-
-  if (params_type) {
-    resourceURL = 'api/executiontime?type='+params_type;
-    graphtitle = "Average execution times for "+params_type;
-  } else {
-    resourceURL = 'api/waittime';
-    graphtitle = "Combined average execution times for build and test";
-  }
-
-  $.getJSON(resourceURL, function(data) {
+  $.getJSON('api/executiontime?type='+type+'&range='+range, function(data) {
     var graphdata = Object.keys(data).map(function(os) {
       var series = {};
       series.label = os;
@@ -154,98 +144,78 @@ function show_executiontime(params_type){
       return series;
     });
 
-    show_graph(graphtitle, graphdata);
+    show_graph(graphdata);
   });
 }
 
-function show_waittime(params_type){
-    //Build Wait Dashboard
-    show_loading(); //Show loading div to keep user happy
+function show_waittime(type, range){
+  $('#rightcontent').html(ich.graph({ title: "Average wait times for " + type }));
+  update_range_selector('waittime', type, range);
 
-    var graphtitle;
-
-    //Request data from api/turnaround and do stuff
-    if(params_type){
-        resourceURL = 'api/waittime?type='+params_type;
-        graphtitle = "Average wait times for "+params_type;
-    }else{
-        resourceURL = 'api/waittime';
-        graphtitle = "Combined average wait times for build and test";
-    }
-    $.getJSON(resourceURL, function(data) {
-
-      var graphdata = Object.keys(data).map(function(os) {
-        var series = {};
-        series.label = os;
-        series.data = Object.keys(data[os]).map(function(datestr) {      
-          //Calculate datapoint display value
-          var dbg_total = divide(data[os][datestr]["debug_build"],
-                                 data[os][datestr]["debug_build_counter"]) + 
-            divide(data[os][datestr]["debug_test"],
-                   data[os][datestr]["debug_test_counter"]);
-          var opt_total = divide(data[os][datestr]["opt_build"],
-                                 data[os][datestr]["opt_build_counter"]) + 
-            divide(data[os][datestr]["opt_test"],
+  $.getJSON('api/waittime?type='+ type + "&range=" + range, function(data) {
+    var graphdata = Object.keys(data).map(function(os) {
+      var series = {};
+      series.label = os;
+      series.data = Object.keys(data[os]).map(function(datestr) {
+        //Calculate datapoint display value
+        var dbg_total = divide(data[os][datestr]["debug_build"],
+                               data[os][datestr]["debug_build_counter"]) +
+          divide(data[os][datestr]["debug_test"],
+                 data[os][datestr]["debug_test_counter"]);
+        var opt_total = divide(data[os][datestr]["opt_build"],
+                               data[os][datestr]["opt_build_counter"]) +
+          divide(data[os][datestr]["opt_test"],
                    data[os][datestr]["opt_test_counter"]);
 
-          return [parseDate(datestr), to_hours(Math.max(dbg_total,opt_total))];
-        }).sort(function(a,b) { return a[0]-b[0]; });
-        
-        return series;
-      });
+        return [parseDate(datestr), to_hours(Math.max(dbg_total,opt_total))];
+      }).sort(function(a,b) { return a[0]-b[0]; });
 
-      show_graph(graphtitle, graphdata);
-    }); 
+      return series;
+    });
+
+    show_graph(graphdata);
+  });
 }
 
-function show_overhead(params_type){
-    //Setup and Teardown Averages Dashboard
-    show_loading(); //Show loading div to keep user happy
+function show_overhead(type, range) {
+  $('#rightcontent').html(ich.graph({ title: "Average setup/teardown times for " + type }));
+  update_range_selector('waittime', type, range);
 
-    var graphtitle;
+  $.getJSON('api/overhead?type=' + type + "&range=" + range, function(data) {
 
-    //Request data from api/turnaround and do stuff
-    if(params_type){
-        resourceURL = 'api/overhead?type='+params_type;
-        graphtitle = "Average setup/teardown times for "+params_type;
-    }else{
-        resourceURL = 'api/overhead';
-        graphtitle = "Combined average setup/teardown times for test and build";
-    }
-    $.getJSON(resourceURL, function(data) {
-
-      var graphdata = Object.keys(data).map(function(os) {
-        var series = {};
-        series.label = os;
-        series.data = Object.keys(data[os]).map(function(datestr) {      
-          //Calculate datapoint display value
-          var dbg_total = divide(data[os][datestr]["debug_build"],
-                                 data[os][datestr]["debug_build_counter"]) + 
-            divide(data[os][datestr]["debug_test"],
-                   data[os][datestr]["debug_test_counter"]);
-          var opt_total = divide(data[os][datestr]["opt_build"],
-                                 data[os][datestr]["opt_build_counter"]) + 
-            divide(data[os][datestr]["opt_test"],
+    var graphdata = Object.keys(data).map(function(os) {
+      var series = {};
+      series.label = os;
+      series.data = Object.keys(data[os]).map(function(datestr) {      
+        //Calculate datapoint display value
+        var dbg_total = divide(data[os][datestr]["debug_build"],
+                               data[os][datestr]["debug_build_counter"]) + 
+          divide(data[os][datestr]["debug_test"],
+                 data[os][datestr]["debug_test_counter"]);
+        var opt_total = divide(data[os][datestr]["opt_build"],
+                               data[os][datestr]["opt_build_counter"]) + 
+          divide(data[os][datestr]["opt_test"],
                    data[os][datestr]["opt_test_counter"]);
 
-          return [parseDate(datestr), to_hours(Math.max(dbg_total,opt_total))];
-        }).sort(function(a,b) { return a[0]-b[0]; });
-        
-        return series;
-      });
+        return [parseDate(datestr), to_hours(Math.max(dbg_total,opt_total))];
+      }).sort(function(a,b) { return a[0]-b[0]; });
 
-      show_graph(graphtitle, graphdata);
+      return series;
     });
+
+    show_graph(graphdata);
+  });
 }
 
 function show_buildcharts() {
-  show_loading();
+  $('#rightcontent').html(ich.dialog({ title:"Build charts" }));
+
   $.getJSON("api/builds/", function(data) {
     var all_summaries = data['builds'];
 
     // reformat time/revision to look decent in summary form +
     // format the last job type
-    all_summaries.forEach(function(buildday) {     
+    all_summaries.forEach(function(buildday) {
       buildday["builds"] = buildday["builds"].map(function(b) { 
         // get description of last job (FIXME: duplication with buildchart.js)
         var jobtype = b.last_event.jobtype;
@@ -261,15 +231,17 @@ function show_buildcharts() {
       });
     });
 
-    $('#rightcontent').html(ich.buildlist({ summaries: all_summaries }));
+    $('#dialog_content').html(ich.buildcharts({ summaries: all_summaries }));
   });
 }
-           
+
 function show_isthisbuildfaster() {
-  show_loading();
+
+  $('#rightcontent').html(ich.dialog({ title:"Is this build faster?" }));
+
   $.getJSON("api/itbf/jobs/", function(data) {
-    $('#rightcontent').html(ich.itbf_form({ num_itbf_jobs: data['num_pending_jobs'] }));
-    $("form#itbf_form").submit(function() {   
+    $('#dialog_content').html(ich.itbf_form({ num_itbf_jobs: data['num_pending_jobs'] }));
+    $("form#itbf_form").submit(function() {
       $.ajax({
         type: 'POST',
         url: "api/itbf/jobs/",
@@ -279,14 +251,14 @@ function show_isthisbuildfaster() {
                 'return_email': $('#return_email').val()
               },
         success: function(data) {
-          $('#result').replaceWith(ich.itbf_submitted({ num_itbf_jobs: data['num_pending_jobs'] }));
+          $('#dialog_content').replaceWith(ich.itbf_submitted({ num_itbf_jobs: data['num_pending_jobs'] }));
         },
         error: function(obj, textStatus, errorThrown) {
-          $('#result').replaceWith(ich.itbf_error());
+          $('#dialog_content').replaceWith(ich.itbf_error());
         },
         dataType: 'json'
       });
-      
+
       return false;
     });
   });
@@ -302,23 +274,31 @@ $(function() {
     },
     '/endtoend': {
       '/:mode': {
-        on: show_endtoend
+        '/:range': {
+          on: show_endtoend
+        }
       }
     },
 
     '/executiontime': {
       '/:type': {
-        on: show_executiontime
+        '/:range': {
+          on: show_executiontime
+        }
       }
     },
     '/waittime': {
       '/:type': {
-        on: show_waittime 
+        '/:range': {
+          on: show_waittime
+        }
       }
     },
     '/overhead': {
       '/:type': {
-        on: show_overhead 
+        '/:range': {
+          on: show_overhead
+        }
       }
     },
     '/buildcharts': {
