@@ -41,6 +41,27 @@ function show_loading(){
   $('#rightcontent').html("<div id='result'><div id='loading' style='margin:0 auto; padding-top:20px;'><center><span style='font-weight:200; font-size:200%;'>Loading...</span><br/><img height='32' width='32' src='images/loading.gif' alt='' /></center></div></div>");
 }
 
+function show_graph(title, data) {
+  $('#rightcontent').html(ich.graph({ title: title }));
+
+  $.plot($("#container"), data, {
+    xaxis: {
+      mode: "time"
+    },
+    yaxis: {
+      axisLabel: 'Time (Hours)'
+    },
+    series: {
+      lines: { show: true, fill: false, steps: false },
+      points: { show: true }
+    },
+    legend: {
+      position: "nw",
+      hideable: true
+    }
+  });
+}
+
 function divide(dividend, divisor){
     //Division function that allows division by zero (returns zero)
     quotient = dividend/divisor;
@@ -73,9 +94,9 @@ function show_endtoend(mode) {
     var end_to_end_times = data.end_to_end_times;
     
     var graphdata;
-    var graphTitle;
+    var graphtitle;
     if (mode === "os") {
-      graphTitle = "Average End to End Performance per OS";
+      graphtitle = "Average End to End Performance per OS";
       $('#result').append("<h3>Go Faster! - </h3><br/>");
       graphdata = Object.keys(end_to_end_times).map(function(os) {
         var series = {};
@@ -86,7 +107,7 @@ function show_endtoend(mode) {
         return series;
       });
     } else {
-      graphTitle = "Average End to End Performance";
+      graphtitle = "Average End to End Performance";
       var series = {};
       series.data = end_to_end_times.map(function(datapoint) {
         return [parseDate(datapoint[0]), to_hours(datapoint[1])];
@@ -95,24 +116,7 @@ function show_endtoend(mode) {
       graphdata = [ series ];
     }
 
-    $('#rightcontent').html(ich.graph({ graph_title: graphTitle }));
-
-    $.plot($("#container"), graphdata, {
-      xaxis: {
-        mode: "time"
-      },
-      yaxis: {
-        axisLabel: 'Time (Hours)'
-      },
-      series: {
-        lines: { show: true, fill: false, steps: false },
-        points: { show: true }
-      },
-      legend: {
-        position: "nw",
-        hideable: true
-      }
-    });
+    show_graph(graphtitle, graphdata);
   });
 }
 
@@ -120,14 +124,14 @@ function show_executiontime(params_type){
   //Build and Test Execution Dashboard
   show_loading(); //Show loading div to keep user happy
 
-  var graphTitle;
+  var graphtitle;
 
   if (params_type) {
     resourceURL = 'api/executiontime?type='+params_type;
-    graphTitle = "Average execution times for "+params_type;
+    graphtitle = "Average execution times for "+params_type;
   } else {
     resourceURL = 'api/waittime';
-    graphTitle = "Combined average execution times for build and test";
+    graphtitle = "Combined average execution times for build and test";
   }
 
   $.getJSON(resourceURL, function(data) {
@@ -150,24 +154,7 @@ function show_executiontime(params_type){
       return series;
     });
 
-    $('#rightcontent').html(ich.graph({ graph_title: graphTitle }));
-
-    $.plot($("#container"), graphdata, {
-      xaxis: {
-        mode: "time"
-      },
-      yaxis: {
-        axisLabel: 'Time (Hours)'
-      },
-      series: {
-        lines: { show: true, fill: false, steps: false },
-        points: { show: true }
-      },
-      legend: {
-        position: "nw",
-        hideable: true
-      }
-    });
+    show_graph(graphtitle, graphdata);
   });
 }
 
@@ -175,15 +162,15 @@ function show_waittime(params_type){
     //Build Wait Dashboard
     show_loading(); //Show loading div to keep user happy
 
-    var graphTitle;
+    var graphtitle;
 
     //Request data from api/turnaround and do stuff
     if(params_type){
         resourceURL = 'api/waittime?type='+params_type;
-        graphTitle = "Average wait times for "+params_type;
+        graphtitle = "Average wait times for "+params_type;
     }else{
         resourceURL = 'api/waittime';
-        graphTitle = "Combined average wait times for build and test";
+        graphtitle = "Combined average wait times for build and test";
     }
     $.getJSON(resourceURL, function(data) {
 
@@ -207,24 +194,7 @@ function show_waittime(params_type){
         return series;
       });
 
-      $('#rightcontent').html(ich.graph({ graph_title: graphTitle }));
-
-      $.plot($("#container"), graphdata, {
-        xaxis: {
-          mode: "time"
-        },
-        yaxis: {
-          axisLabel: 'Time (Hours)'
-        },
-        series: {
-          lines: { show: true, fill: false, steps: false },
-          points: { show: true }
-        },
-        legend: {
-          position: "nw",
-          hideable: true
-        }
-      });
+      show_graph(graphtitle, graphdata);
     }); 
 }
 
@@ -232,15 +202,15 @@ function show_overhead(params_type){
     //Setup and Teardown Averages Dashboard
     show_loading(); //Show loading div to keep user happy
 
-    var graphTitle;
+    var graphtitle;
 
     //Request data from api/turnaround and do stuff
     if(params_type){
         resourceURL = 'api/overhead?type='+params_type;
-        graphTitle = "Average setup/teardown times for "+params_type;
+        graphtitle = "Average setup/teardown times for "+params_type;
     }else{
         resourceURL = 'api/overhead';
-        graphTitle = "Combined average setup/teardown times for test and build";
+        graphtitle = "Combined average setup/teardown times for test and build";
     }
     $.getJSON(resourceURL, function(data) {
 
@@ -264,24 +234,7 @@ function show_overhead(params_type){
         return series;
       });
 
-      $('#rightcontent').html(ich.graph({ graph_title: graphTitle }));
-      
-      $.plot($("#container"), graphdata, {
-        xaxis: {
-          mode: "time"
-        },
-        yaxis: {
-          axisLabel: 'Time (Hours)'
-        },
-        series: {
-          lines: { show: true, fill: false, steps: false },
-          points: { show: true }
-        },
-        legend: {
-          position: "nw",
-          hideable: true
-        }
-      });
+      show_graph(graphtitle, graphdata);
     });
 }
 
