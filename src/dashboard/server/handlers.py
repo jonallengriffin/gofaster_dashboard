@@ -61,42 +61,9 @@ eslib = ESLib(ES_SERVER, config.get("database", "INDEX"), config.get("database",
 #This line is for if you want to use server-side templates, shouldn't be necessary
 render = web.template.render('../templates')
 
-#Example MySQL Query
-#db = web.database(dbn='mysql', db='dbname', user='user', pw='password')
-#results = db.query("SELECT * FROM steps limit 1")
-
 # Get YYYY-MM-DD from unix time (seconds since 1970)
 def get_datestr(unixtime):
     return datetime.fromtimestamp(unixtime).strftime('%Y-%m-%d')
-
-# Gets dates from parameters and parses to correct format
-# Returns tuple with startdate and enddate parsed from URL string
-def get_dates(params, days_apart=7):
-    startdate = None
-    enddate = None
-    try:
-        startdate = params["startdate"][0]
-        startdate = re.search(r'(\d\d\d\d-\d\d-\d\d)',startdate).group(0)
-        startdate = datetime.strptime(str(startdate), "%Y-%m-%d")
-       #Check that startdate is an isoformat date string
-    except:
-        pass
-    try:
-        enddate = params["enddate"][0]
-        enddate = re.search(r'(\d\d\d\d-\d\d-\d\d)',enddate).group(0)
-        enddate = datetime.strptime(str(enddate), "%Y-%m-%d")
-        #Check that startdate is an isoformat date string
-    except:
-        pass
-
-    if startdate is None:
-        startdate = datetime.today()
-    if enddate is None and startdate != None:
-        delta = timedelta(days=days_apart)
-        enddate = startdate - delta
-    startdate = startdate.strftime("%Y-%m-%d")
-    enddate = enddate.strftime("%Y-%m-%d")
-    return (startdate, enddate)
 
 last_parsed_buildfaster_data = None
 buildfaster_data = None
@@ -119,77 +86,6 @@ def get_build_events(range):
 
 def get_build_summaries():
     return get_build_data()['summaries']
-
-#Mochitest handler returns mochitest runtimes on given days and builds
-class MochitestHandler(object):
-    def GET(self):
-        params, body = templeton.handlers.get_request_parms()
-
-        args = {}
-        args["date"] = []
-        dates = get_dates(params)
-        startdate = dates[0]
-        enddate = dates[1]
-        try:
-            params["enddate"][0]
-            args["date"].append(startdate)
-            args["date"].append(enddate)
-        except:
-            args["date"] = startdate
-
-        try:
-            params["buildtype"][0]
-            args["buildtype"] = params["buildtype"][0]
-        except:
-            pass
-
-        try:
-            params["os"][0]
-            args["os"] = params["os"][0]
-        except:
-            pass
-
-        result = eslib.query(args)
-        return result
-
-#Turnaround handler returns total build+test runtime in seconds and the number of tests for each kind
-class TurnaroundHandler(object):
-
-    @templeton.handlers.json_response
-    def GET(self, params, body):
-        params, body = templeton.handlers.get_request_parms()
-
-        target_os = "all"
-        try:
-            target_os = params["os"][0]
-        except:
-            pass
-
-        return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-        for entry in get_build_events():
-            # Skip talos
-            if entry["jobtype"] == "talos":
-                continue
-
-            datapoint_os = entry["os"]
-            if datapoint_os == "win7" or datapoint_os == "winxp":                
-                datapoint_os = "win32" # for overall time, win7/winxp tests are win32 datapoints
-
-            if target_os != "all" and datapoint_os != target_os:
-                continue
-
-            datapoint_date = get_datestr(entry["submitted_at"])
-            datapoint_os = entry["os"]
-            if datapoint_os == "win7" or datapoint_os == "winxp":                
-                datapoint_os = "win32" # for overall time, win7/winxp tests are win32 datapoints
-            datapoint_type = "%s_%s" % (entry["buildtype"], entry["jobtype"])
-            datapoint_counter = datapoint_type + "_counter"
-            
-            return_data[datapoint_os][datapoint_date][datapoint_type] += entry["wait_time"]
-            return_data[datapoint_os][datapoint_date][datapoint_type] += entry["elapsed"]
-            return_data[datapoint_os][datapoint_date][datapoint_counter] += 1
-
-        return return_data
 
 class EndToEndTimeHandler(object):
 
@@ -414,8 +310,6 @@ class IsThisBuildFasterJobsHandler(object):
 
 # URLs go here. "/api/" will be automatically prepended to each.
 urls = (
-  '/mochitest/?', "MochitestHandler",
-  '/turnaround/?', "TurnaroundHandler",
   '/endtoendtimes/?', "EndToEndTimeHandler",
   '/waittime/?', "WaitTimeHandler",
   '/overhead/?', "OverheadHandler",
