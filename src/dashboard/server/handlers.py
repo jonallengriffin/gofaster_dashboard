@@ -50,6 +50,7 @@ import web
 import time
 import os.path
 import cPickle as pickle
+from statlib import stats
 import stat
 import itbf.queue
 
@@ -87,74 +88,94 @@ def get_build_events(range):
 def get_build_summaries():
     return get_build_data()['summaries']
 
+def get_mean_times(data, buildtype, include_outliers):
+    return_data = defaultdict(lambda: defaultdict(float))
+    all_times = reduce(lambda x,y: x+y, reduce(lambda x,y: x+y, map(lambda d: d.values(), data.values())))
+    overall_mean = stats.mean(all_times)
+    overall_stdev = stats.stdev(all_times)
+    for (date, dateval) in data.iteritems():
+        typedict = {}
+        for (type, times) in dateval.iteritems():
+            mean = stats.mean(times)
+            if not include_outliers and len(times) > 1:
+                included_values = []
+                for time in times:
+                    if abs(time - overall_mean) < 1.5*overall_stdev:
+                        included_values.append(time)
+                if len(included_values) > 0:
+                    mean = stats.mean(included_values)
+                else:
+                    mean = None
+            typedict[type] = mean
+        if buildtype == "maximum" and max(typedict.values()):
+            return_data[date] = max(typedict.values())
+        elif typedict.get(buildtype):
+            return_data[date] = typedict.get(buildtype, 0)
+
+    return return_data
+
 class EndToEndTimeHandler(object):
 
     @templeton.handlers.json_response
-    def GET(self):
+    def GET(self, mode):
         params, body = templeton.handlers.get_request_parms()
-        try:
-            mode = params["mode"][0]
-        except:
-            mode = "average"
         try:
             range = int(params["range"][0])
         except:
             range = 0
+        try:
+            include_outliers = int(params["include_outliers"][0])
+        except:
+            include_outliers = 0
 
         summaries = get_build_summaries()
         if range > 0:
             summaries = filter(lambda s: (datetime.today() - datetime.fromtimestamp(s['submitted_at'])).days < range,
                                summaries)
 
-        if mode == "os":
-            end_to_end_times = defaultdict(lambda: [])
+        if mode == "per_os":
+            items = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: [])))
             for os in set(sum(map(lambda s: s['time_taken_per_os'].keys(), 
                                   summaries), [])):
                 for date in sorted(set(map(lambda s: get_datestr(s['submitted_at']), summaries))):
-                    count = 0.0
-                    total = 0
                     for summary in filter(lambda s: get_datestr(s['submitted_at'])==date, summaries):
                         if summary['time_taken_per_os'].get(os):
-                            total += summary['time_taken_per_os'][os]
-                            count += 1
-                    if count > 0:
-                        end_to_end_times[os].append([date, total/count])
+                            items[os][date]["both"].append(summary['time_taken_per_os'][os])
 
-            return { 'end_to_end_times': end_to_end_times }
+            return_data = {}
+            for (os, osval) in items.iteritems():
+                return_data[os] = get_mean_times(osval, "both", include_outliers)
 
+            return return_data
+        else:
+            items = defaultdict(lambda: defaultdict(lambda: []))
+            end_to_end_times = []
+            for date in sorted(set(map(lambda s: get_datestr(s['submitted_at']), summaries))):
+                for summary in filter(lambda s: get_datestr(s['submitted_at'])==date, summaries):
+                    items[date]["both"].append(summary['time_taken_overall'])
 
-        end_to_end_times = []
-        for date in sorted(set(map(lambda s: get_datestr(s['submitted_at']), summaries))):
-            count = 0.0
-            total = 0
-            for summary in filter(lambda s: get_datestr(s['submitted_at'])==date, summaries):
-                total += summary['time_taken_overall']
-                count += 1
-            end_to_end_times.append([date, total/count])
-                
-        return { 'end_to_end_times': end_to_end_times }
+            return { 'all': get_mean_times(items, "both", include_outliers) }
 
 #Execution Time handler returns average execution time for builds and tests
 class ExecutionTimeHandler(object):
 
     @templeton.handlers.json_response
-    def GET(self):
+    def GET(self, type):
         params, body = templeton.handlers.get_request_parms()
-
-        try:
-            target_os = params["os"][0]
-        except:
-            target_os = "all"
-        try:
-            show_type = params["type"][0]
-        except:
-            show_type = "all"
         try:
             range = int(params["range"][0])
         except:
             range = 0
+        try:
+            include_outliers = int(params["include_outliers"][0])
+        except:
+            include_outliers = 0
+        try:
+            buildtype = params["buildtype"][0]
+        except:
+            buildtype = "maximum"
 
-        return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+        items = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: [])))
         for event in get_build_events(range):
             # Skip talos
             if event["jobtype"] == "talos":
@@ -163,11 +184,13 @@ class ExecutionTimeHandler(object):
             datapoint_date = get_datestr(event["submitted_at"])
             datapoint_os = event["os"]
             datapoint_type = "%s_%s" % (event["buildtype"], event["jobtype"])
-            datapoint_counter = datapoint_type + "_counter"
 
-            if show_type == "all" or show_type==event["jobtype"]:
-                return_data[datapoint_os][datapoint_date][datapoint_type] += event["work_time"]
-                return_data[datapoint_os][datapoint_date][datapoint_counter] += 1
+            if type == "all" or type==event["jobtype"]:
+                items[datapoint_os][datapoint_date][datapoint_type].append(event["work_time"])
+
+        return_data = {}
+        for (os, osval) in items.iteritems():
+            return_data[os] = get_mean_times(osval, buildtype, include_outliers)
 
         return return_data
 
@@ -175,7 +198,7 @@ class ExecutionTimeHandler(object):
 class WaitTimeHandler(object):
 
     @templeton.handlers.json_response
-    def GET(self):
+    def GET(self, type):
         params, body = templeton.handlers.get_request_parms()
 
         try:
@@ -183,27 +206,29 @@ class WaitTimeHandler(object):
         except:
             target_os = "all"
         try:
-            show_type = params["type"][0]
+            include_outliers = int(params["include_outliers"][0])
         except:
-            show_type = "all"
+            include_outliers = 0
         try:
             range = int(params["range"][0])
         except:
             range = 0
 
-        return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+        items = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: [])))
         for entry in get_build_events(range):
             if entry["jobtype"] == "talos":
                 continue
 
             datapoint_date = get_datestr(entry["submitted_at"])
             datapoint_os = entry["os"]
-            datapoint_type = "%s_%s" % (entry["buildtype"], entry["jobtype"])
-            datapoint_counter = datapoint_type + "_counter"
+            datapoint_type = "all" # don't care about opt vs. debug for wait
 
-            if show_type == "all" or show_type==entry["jobtype"]:
-                return_data[datapoint_os][datapoint_date][datapoint_type] += entry["wait_time"]
-                return_data[datapoint_os][datapoint_date][datapoint_counter] += 1
+            if type == "all" or type==entry["jobtype"]:
+                items[datapoint_os][datapoint_date][datapoint_type].append(entry["wait_time"])
+
+        return_data = {}
+        for (os, osval) in items.iteritems():
+            return_data[os] = get_mean_times(osval, "all", include_outliers)
 
         return return_data
 
@@ -211,7 +236,7 @@ class WaitTimeHandler(object):
 class OverheadHandler(object):
 
     @templeton.handlers.json_response
-    def GET(self):
+    def GET(self, type):
         params, body = templeton.handlers.get_request_parms()
 
         try:
@@ -219,36 +244,38 @@ class OverheadHandler(object):
         except:
             target_os = "all"
         try:
-            show_type = params["type"][0]
+            include_outliers = int(params["include_outliers"][0])
         except:
-            show_type = "all"
+            include_outliers = 0
         try:
             range = int(params["range"][0])
         except:
             range = 0
 
-        return_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+        items = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: [])))
         for entry in get_build_events(range):
             if entry["jobtype"] == "talos":
                 continue
 
             datapoint_date = get_datestr(entry["submitted_at"])
             datapoint_os = entry["os"]
-            datapoint_type = "%s_%s" % (entry["buildtype"], entry["jobtype"])
-            datapoint_counter = datapoint_type + "_counter"
-            
-            if show_type == "all" or show_type==entry["jobtype"]:
+            datapoint_type = "all" # don't care about opt vs. debug for this
+
+            if type == "all" or type==entry["jobtype"]:
                 #setup and teardown time is just elapsed_time - work_time
                 s1s2 = entry["elapsed"] - entry["work_time"]
-                return_data[datapoint_os][datapoint_date][datapoint_type] += s1s2
-                return_data[datapoint_os][datapoint_date][datapoint_counter] += 1
+                items[datapoint_os][datapoint_date][datapoint_type].append(s1s2)
+
+        return_data = {}
+        for (os, osval) in items.iteritems():
+            return_data[os] = get_mean_times(osval, "all", include_outliers)
 
         return return_data
 
 def get_build_detail(buildid):
-    buildevents = sorted(filter(lambda e: e['uid'] == buildid, get_build_events()), 
+    buildevents = sorted(filter(lambda e: e['uid'] == buildid, get_build_events()),
                          key=lambda e: e['start_time'])
-    
+
     return { 'date': get_datestr(buildevents[0]['submitted_at']),
              'revision': buildevents[0]['revision'][0:8],
              'buildevents': buildevents }
@@ -310,10 +337,10 @@ class IsThisBuildFasterJobsHandler(object):
 
 # URLs go here. "/api/" will be automatically prepended to each.
 urls = (
-  '/endtoendtimes/?', "EndToEndTimeHandler",
-  '/waittime/?', "WaitTimeHandler",
-  '/overhead/?', "OverheadHandler",
-  '/executiontime/?', "ExecutionTimeHandler",
+  '/endtoendtimes/(average|per_os)/?', "EndToEndTimeHandler",
+  '/waittime/(build|test)/?', "WaitTimeHandler",
+  '/overhead/(build|test)/?', "OverheadHandler",
+  '/executiontime/(build|test)/?', "ExecutionTimeHandler",
   '/builds/?', "BuildsHandler",
   '/builddata/?', "BuildDataHandler",
   '/itbf/jobs/?', "IsThisBuildFasterJobsHandler",

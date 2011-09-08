@@ -45,6 +45,7 @@ python_dateutil==1.5 \
 lockfile \
 ordereddict \
 pyes \
+statlib \
 "
 
 MOZAUTOLOG_REPO=http://hg.mozilla.org/users/jgriffin_mozilla.com/mozautolog/

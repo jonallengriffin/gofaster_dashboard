@@ -52,14 +52,14 @@
             <a href="#/"><div id="logolink"></div></a>
             <h2>Metrics</h2>
             <ul>
-              <li><a href="#/endtoend/average/30">End to End Times (average)</a></li>
-              <li><a href="#/endtoend/os/30">End to End Times (per OS)</a></li>
-              <li><a href="#/executiontime/build/30">Avg Build Time</a></li>
-              <li><a href="#/executiontime/test/30">Avg Test Time</a></li>
-              <li><a href="#/waittime/build/30">Build Machine Wait</a></li>
-              <li><a href="#/waittime/test/30">Test Machine Wait</a></li>
-              <li><a href="#/overhead/build/30">Build Setup & Teardown</a></li>
-              <li><a href="#/overhead/test/30">Test Setup & Teardown</a></li>
+              <li><a href="#/endtoend/average">End to End Times (average)</a></li>
+              <li><a href="#/endtoend/per_os">End to End Times (per OS)</a></li>
+              <li><a href="#/executiontime/build">Avg Build Time</a></li>
+              <li><a href="#/executiontime/test">Avg Test Time</a></li>
+              <li><a href="#/waittime/build">Build Machine Wait</a></li>
+              <li><a href="#/waittime/test">Test Machine Wait</a></li>
+              <li><a href="#/overhead/build">Build Setup & Teardown</a></li>
+              <li><a href="#/overhead/test">Test Setup & Teardown</a></li>
             </ul>
             <br/>
             <h2>Tools</h2>
@@ -115,6 +115,9 @@
           <option id="range60" value="60">Last 60 days</option>
           <option id="rangeall" value="all">All</option>
         </select>
+        <br/>
+        <label>Include outliers</label>
+        <input type="checkbox" id="include_outliers"></input>
       </div>
 
     </script>
