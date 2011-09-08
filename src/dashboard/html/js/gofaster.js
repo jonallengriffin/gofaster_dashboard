@@ -130,14 +130,14 @@ function show_endtoend(mode, params) {
   update_form_options('endtoend', mode, params);
 
   $.getJSON('api/endtoendtimes/' + mode +'?' + create_paramstr(params), function(data) {
-    var graphdata = Object.keys(data).map(function(os) {
+    var graphdata = Object.keys(data).sort().map(function(os) {
       var series = {};
       if (mode === "per_os") {
         series.label = os;
       }
       series.data = Object.keys(data[os]).map(function(datestr) {
         return [parseDate(datestr), to_hours(data[os][datestr])];
-      }).sort(function(a,b) { return a[0]-b[0]; });
+      }).sort();
 
       return series;
     });
@@ -152,12 +152,12 @@ function show_executiontime(type, params) {
   update_form_options('executiontime', type, params);
 
   $.getJSON('api/executiontime/'+type+'?' + create_paramstr(params), function(data) {
-    var graphdata = Object.keys(data).map(function(os) {
+    var graphdata = Object.keys(data).sort().map(function(os) {
       var series = {};
       series.label = os;
       series.data = Object.keys(data[os]).map(function(datestr) {
         return [parseDate(datestr), to_hours(data[os][datestr])];
-      }).sort(function(a,b) { return a[0]-b[0]; });
+      }).sort();
 
       return series;
     });
@@ -171,12 +171,12 @@ function show_waittime(type, params) {
   update_form_options('waittime', type, params);
 
   $.getJSON('api/waittime/'+ type + '?' + create_paramstr(params), function(data) {
-    var graphdata = Object.keys(data).map(function(os) {
+    var graphdata = Object.keys(data).sort().map(function(os) {
       var series = {};
       series.label = os;
       series.data = Object.keys(data[os]).map(function(datestr) {
         return [parseDate(datestr), to_hours(data[os][datestr])];
-      }).sort(function(a,b) { return a[0]-b[0]; });
+      }).sort();
 
       return series;
     });
@@ -190,12 +190,12 @@ function show_overhead(type, params) {
   update_form_options('overhead', type, params);
 
   $.getJSON('api/overhead/'+ type + '?' + create_paramstr(params), function(data) {
-    var graphdata = Object.keys(data).map(function(os) {
+    var graphdata = Object.keys(data).sort().map(function(os) {
       var series = {};
       series.label = os;
       series.data = Object.keys(data[os]).map(function(datestr) {
         return [parseDate(datestr), to_hours(data[os][datestr])];
-      }).sort(function(a,b) { return a[0]-b[0]; });
+      }).sort();
 
       return series;
     });
