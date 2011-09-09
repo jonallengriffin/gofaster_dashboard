@@ -106,7 +106,11 @@ $(function() {
 	       {
 	         series: {
 	           pie: {
-	             show: true
+	             show: true,
+                     combine: {
+                       color: '#999',
+                       threshold: 0.01
+                     }
 	           }
 	         },
                  grid: {
