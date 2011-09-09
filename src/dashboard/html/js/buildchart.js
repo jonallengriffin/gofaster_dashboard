@@ -109,7 +109,7 @@ $(function() {
 	             show: true,
                      combine: {
                        color: '#999',
-                       threshold: 0.01
+                       threshold: 0.025
                      }
 	           }
 	         },
