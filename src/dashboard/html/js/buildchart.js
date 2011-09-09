@@ -10,6 +10,15 @@ $(function() {
     vars[hash[0]] = hash[1];
   }  
   
+
+  $('#build-dialog').dialog({
+    autoOpen: false,
+    width: 540,
+    height: 560,
+    modal: true
+  });
+
+
   // get the data!
   $.getJSON('api/builddata/?buildid=' + vars['buildid'], function(data) {
 
@@ -60,9 +69,9 @@ $(function() {
       }
 
       var desc = event.os + " " + jobtype + " " + toMinuteString(event.finish_time - event.start_time) + " (wait: " + toMinuteString(event.start_time - event.submitted_at) + ")";
-      event_series[event_series.length] = [get_relative_time(event.start_time), i, get_relative_time(event.finish_time), desc];
+      var build_job_id = event.build_job_id ? event.build_job_id : null;
+      event_series[event_series.length] = [get_relative_time(event.start_time), i, get_relative_time(event.finish_time), desc, build_job_id];
       submitted_series[submitted_series.length] = [get_relative_time(event.submitted_at), i, get_relative_time(event.start_time), null];
-      console.log(event.start_time-event.submitted_at);
       i--;
     });
     var options = { series: { gantt: { active: true, show: true, barheight: 0.2 } }
@@ -71,5 +80,49 @@ $(function() {
 		    ,grid:   { hoverable: true, clickable: true}
    		  };
     $.plot($("#buildchart"), [ { label: "Events", data: event_series }, { label: "Wait times", data: submitted_series } ], options);
+
+    $("#buildchart").bind("plotclick", function(event, pos, obj) {
+      console.log(obj);
+      var build_job_id = obj.datapoint[4];
+      if (!build_job_id) {
+        return;
+      }
+      $.getJSON('api/buildjobs/'+build_job_id, function(data) {
+        if (!data) {
+          alert("No data for this job");
+          console.log(data);
+          return;
+        }
+
+        $('#build-dialog').dialog("option", "title", obj.datapoint[3]);
+        $("#description").html('<p><br/></p>');
+        $("#full-log").html('<p><a href=\"' + data['logurl'] + '\" target=\"_blank\">Full Log</p>');
+        $('#build-dialog').dialog('open');
+
+        var builddata = Object.keys(data["steps"]).map(function(stepname) {
+          return { label: stepname, data: data["steps"][stepname] };
+        });
+        $.plot($("#piechart"), builddata,
+	       {
+	         series: {
+	           pie: {
+	             show: true
+	           }
+	         },
+                 grid: {
+                   hoverable: true,
+                   clickable: true
+                 }
+	       });
+        $("#piechart").bind("plothover", function(event, pos, obj) {
+          if (obj) {
+            $("#description").html('<p style="font-weight: bold; align: center;">'+obj.series.label+' ('+obj.series.data[0][1]+' minutes)</span>');
+          } else {
+            $("#description").html('<p><br/></p>');
+          }
+        });
+      });
+    });
+
   });
 });

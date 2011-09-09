@@ -19,6 +19,7 @@
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
+#   Jonathan Griffin <jgriffin@mozilla.com>
 #   Sam Liu <sam@ambushnetworks.com>
 #   William Lachance <wlachance@mozilla.com>
 #
@@ -57,7 +58,6 @@ import itbf.queue
 config = ConfigParser.ConfigParser()
 config.read("settings.cfg")
 ES_SERVER = config.get("database", "ES_SERVER")
-eslib = ESLib(ES_SERVER, config.get("database", "INDEX"), config.get("database", "TYPE"))
 
 #This line is for if you want to use server-side templates, shouldn't be necessary
 render = web.template.render('../templates')
@@ -87,6 +87,9 @@ def get_build_events(range):
 
 def get_build_summaries():
     return get_build_data()['summaries']
+
+def get_build_jobs():
+    return get_build_data()['build_jobs']
 
 def get_mean_times(data, buildtype, include_outliers):
     return_data = defaultdict(lambda: defaultdict(float))
@@ -315,6 +318,36 @@ class BuildDataHandler(object):
 
         return { 'summary': summary, 'events': events }
 
+def get_buildjob_detail(revision, slave, buildername):
+  if '\"' not in slave:
+    slave = '\"%s\"' % slave
+  es = ESLib(ES_SERVER, 'logs', 'buildlogs')
+  results = es.query({'revision': '%s*' % revision[0:12], 'machine': slave})
+  if len(results) == 1:
+    return results[0]
+  if len(results) > 1:
+    for result in results:
+      if result['buildername'] == buildername:
+        return result
+  else:
+    return None
+
+class BuildJobHandler(object):
+
+    @templeton.handlers.json_response
+    def GET(self, jobid):
+        job = get_build_jobs()[int(jobid)]
+        detail = get_buildjob_detail(job['revision'], job['slave_name'],
+                                     job['builder_name'])
+        if detail:
+            # convert to float for client's convenience
+            for stepname in detail['steps'].keys():
+                detail['steps'][stepname] = float(detail['steps'][stepname])
+            detail['total'] = float(detail['total'])
+            return detail
+
+        return None
+
 class IsThisBuildFasterJobsHandler(object):
 
     @templeton.handlers.json_response
@@ -343,5 +376,6 @@ urls = (
   '/executiontime/(build|test)/?', "ExecutionTimeHandler",
   '/builds/?', "BuildsHandler",
   '/builddata/?', "BuildDataHandler",
+  '/buildjobs/([0-9]+)/?', "BuildJobHandler",
   '/itbf/jobs/?', "IsThisBuildFasterJobsHandler",
 )

@@ -62,6 +62,7 @@ reader = csv.DictReader(f)
 
 events = []
 suite_events = defaultdict(lambda: defaultdict(int))
+build_jobs = []
 
 for row in reader:
     # if it has a suitename, only process it if it's the first event for that suite
@@ -80,6 +81,13 @@ for row in reader:
         event['jobtype'] = "talos"
     else:
         (event['buildtype'], event['jobtype']) = row["jobtype"].split(" ")
+
+    if event['jobtype'] == "build":
+        event['build_job_id'] = len(build_jobs)
+        build_jobs.append({ 'revision': event['revision'],
+                            'builder_name': row['builder_name'],
+                            'slave_name': row['slave_name']
+                            })
 
     if len(row['suitename']) > 0:
         event['suitename'] = row['suitename']
@@ -123,4 +131,4 @@ for uid in set(map(lambda e: e["uid"], events)):
                        'time_taken_overall': time_taken_overall,
                        'last_event': last_event })
 
-pickle.dump({'events': events, 'summaries': summaries }, open(sys.argv[2], 'wb'))
+pickle.dump({'events': events, 'summaries': summaries, 'build_jobs': build_jobs }, open(sys.argv[2], 'wb'))

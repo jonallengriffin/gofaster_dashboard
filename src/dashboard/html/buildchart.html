@@ -40,19 +40,26 @@
     <meta charset="utf-8">
   </head>
   <body>
-    <div id="header"></div>      
+    <div id="header"></div>
     <div id="main" role="main">
       <div id="buildchart"></div>
-      <canvas id="canvas"></div>
+    </div>
+    <div id="build-dialog">
+      <div id="piechart" style="width:500px;height:400px;"></div>
+      <div id="description"></div>
+      <div id="full-log"></div>
     </div>
   </body>
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+  <link rel="stylesheet" href="/templeton/style/Aristo/jquery-ui-1.8.7.custom.css"/>
+  <script src="/templeton/scripts/jquery-1.6.1.min.js"></script>
+  <script src="/templeton/scripts/jquery-ui-1.8.13.custom.min.js"></script>
   <script src="js/ICanHaz.min.js"></script>
   <script src="js/buildchart.js"></script>
   <script src="js/jquery.flot.js"></script>
   <script src="js/jquery.flot.axislabels.js"></script>
   <script src="js/jquery.flot.highlighter.js"></script>
   <script src="js/jquery.flot.buildchart.js"></script>
+  <script src="js/jquery.flot.pie.js"></script>
 
   <script id="buildchart_header" type="text/html">
     <h3>Buildchart for revision {{revision}}</h3>
