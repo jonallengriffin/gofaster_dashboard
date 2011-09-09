@@ -8,16 +8,7 @@ $(function() {
     hash = hashes[i].split('=');
     vars.push(hash[0]);
     vars[hash[0]] = hash[1];
-  }  
-  
-
-  $('#build-dialog').dialog({
-    autoOpen: false,
-    width: 540,
-    height: 560,
-    modal: true
-  });
-
+  }
 
   // get the data!
   $.getJSON('api/builddata/?buildid=' + vars['buildid'], function(data) {
@@ -87,46 +78,73 @@ $(function() {
       if (!build_job_id) {
         return;
       }
-      $.getJSON('api/buildjobs/'+build_job_id, function(data) {
-        if (!data) {
-          alert("No data for this job");
-          console.log(data);
-          return;
-        }
-
-        $('#build-dialog').dialog("option", "title", obj.datapoint[3]);
-        $("#description").html('<p><br/></p>');
-        $("#full-log").html('<p><a href=\"' + data['logurl'] + '\" target=\"_blank\">Full Log</p>');
-        $('#build-dialog').dialog('open');
-
-        var builddata = Object.keys(data["steps"]).map(function(stepname) {
-          return { label: stepname, data: data["steps"][stepname] };
-        });
-        $.plot($("#piechart"), builddata,
-	       {
-	         series: {
-	           pie: {
-	             show: true,
-                     combine: {
-                       color: '#999',
-                       threshold: 0.025
-                     }
-	           }
-	         },
-                 grid: {
-                   hoverable: true,
-                   clickable: true
-                 }
-	       });
-        $("#piechart").bind("plothover", function(event, pos, obj) {
-          if (obj) {
-            $("#description").html('<p style="font-weight: bold; align: center;">'+obj.series.label+' ('+obj.series.data[0][1]+' minutes)</span>');
-          } else {
-            $("#description").html('<p><br/></p>');
-          }
-        });
-      });
+      window.location.hash = '/buildjob/' + build_job_id;
     });
-
   });
+
+  var router = Router({
+    '/': {
+      on: function() {
+      }
+    },
+    '/buildjob/([0-9]+)': {
+      on: function(id) {
+        $.getJSON('api/buildjobs/'+id, function(data) {
+
+          if (!data) {
+            $('#build-dialog').dialog('option', 'title', 'No data');
+            $('#piechart').hide();
+            $('#full-log').hide();
+            $('#description').html('<p>No data for this job. Sorry. :( Either it\'s too old or there\'s a bug in our system.</p>');
+            $('#build-dialog').dialog('open');
+            return;
+          }
+
+          $('#build-dialog').dialog('option', 'title', data['builder'] + ' on ' + data['machine']);
+          $('#piechart').show();
+          $('#full-log').show();
+          $('#description').html('<p><br/></p>');
+          $('#full-log').html('<p>Total time: ' + data['total'] + ' minutes. <a href=\"' + data['logurl'] + '\" target=\"_blank\">Full Log</p>');
+          $('#build-dialog').dialog('open');
+
+          var builddata = Object.keys(data['steps']).map(function(stepname) {
+            return { label: stepname, data: data['steps'][stepname] };
+          });
+          $.plot($('#piechart'), builddata,
+	         {
+	           series: {
+	             pie: {
+	               show: true,
+                       combine: {
+                         color: '#999',
+                         threshold: 0.025
+                       }
+	             }
+	           },
+                   grid: {
+                     hoverable: true,
+                     clickable: true
+                   }
+	         });
+          $('#piechart').bind('plothover', function(event, pos, obj) {
+            if (obj) {
+              $('#description').html('<p style="font-weight: bold; align: center;">'+obj.series.label+' ('+obj.series.data[0][1]+' minutes)</span>');
+            } else {
+              $('#description').html('<p><br/></p>');
+            }
+          });
+        });
+
+      }
+    }
+  }).init('/');
+
+  $('#build-dialog').dialog({
+    autoOpen: false,
+    close: function(event, ui) { window.location.hash = '/'; },
+    width: 540,
+    height: 560,
+    modal: true
+  });
+
 });
