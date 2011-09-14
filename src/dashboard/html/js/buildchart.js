@@ -59,7 +59,7 @@ $(function() {
         return (seconds/60.0).toFixed(3) + " min";
       }
 
-      var desc = event.os + " " + jobtype + " " + toMinuteString(event.finish_time - event.start_time) + " (wait: " + toMinuteString(event.start_time - event.submitted_at) + ")";
+      var desc = event.description + ' ' + toMinuteString(event.finish_time - event.start_time) + " (wait: " + toMinuteString(event.start_time - event.submitted_at) + ")";
       var build_job_id = event.build_job_id ? event.build_job_id : null;
       event_series[event_series.length] = [get_relative_time(event.start_time), i, get_relative_time(event.finish_time), desc, build_job_id];
       submitted_series[submitted_series.length] = [get_relative_time(event.submitted_at), i, get_relative_time(event.start_time), null];
@@ -100,7 +100,7 @@ $(function() {
             return;
           }
 
-          $('#build-dialog').dialog('option', 'title', data['builder'] + ' on ' + data['machine']);
+          $('#build-dialog').dialog('option', 'title', data['description'] + ' on ' + data['machine']);
           $('#piechart').show();
           $('#full-log').show();
           $('#description').html('<p><br/></p>');

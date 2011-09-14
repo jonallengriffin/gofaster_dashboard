@@ -344,6 +344,7 @@ class BuildJobHandler(object):
             for stepname in detail['steps'].keys():
                 detail['steps'][stepname] = float(detail['steps'][stepname])
             detail['total'] = float(detail['total'])
+            detail['description'] = job['description']
             return detail
 
         return None

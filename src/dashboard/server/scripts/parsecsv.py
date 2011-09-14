@@ -38,12 +38,15 @@
 # ***** END LICENSE BLOCK *****
 
 from collections import defaultdict
+import re
 import sys
 import csv
 import dateutil.parser
 import cPickle as pickle
 import datetime
 from time import mktime
+
+builderRe = re.compile(r'(Rev3 )?(.*?)mozilla-central (.*)')
 
 # Converts datasource formatted time (stopwatch format "x days, 0:00:00") to seconds
 def to_seconds(stopwatch_time):
@@ -82,11 +85,19 @@ for row in reader:
     else:
         (event['buildtype'], event['jobtype']) = row["jobtype"].split(" ")
 
+    match = builderRe.match(row["builder_name"])
+    # remove 'Rev3' and 'mozilla-central' from the builder name
+    if match:
+        event["description"] = match.group(2) + match.group(3)
+    else:
+        event["description"] = row["builder_name"]
+
     if event['jobtype'] == "build":
         event['build_job_id'] = len(build_jobs)
         build_jobs.append({ 'revision': event['revision'],
                             'builder_name': row['builder_name'],
-                            'slave_name': row['slave_name']
+                            'slave_name': row['slave_name'],
+                            'description': event['description']
                             })
 
     if len(row['suitename']) > 0:
