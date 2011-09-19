@@ -301,9 +301,8 @@ class BuildsHandler(object):
             summaries[date].sort(key=lambda s: s['time_taken'])
             summaries[date].reverse()
 
-        return { 'builds': map(lambda b: { 'date': b, 
-                                           'builds': summaries[b] }, 
-                               reversed(sorted(summaries.keys()))) }
+        return map(lambda b: { 'date': b, 'builds': summaries[b] },
+                   reversed(sorted(summaries.keys())))
 
 class BuildDataHandler(object):
 
