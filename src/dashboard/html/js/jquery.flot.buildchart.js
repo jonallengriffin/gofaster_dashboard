@@ -70,7 +70,8 @@ data: [
         ctx.moveTo(x, y);
         ctx.lineTo(x2, y);
         ctx.stroke();
-        ctx.textBaseline = "middle";
+        if (data[3]) {
+                ctx.textBaseline = "middle";
                 var textlength = ctx.measureText(data[3]).width;
                 var textpos_x;
                 if (textlength < (x2 - x)) {
@@ -81,6 +82,7 @@ data: [
                   textpos_x = x2+2;
                 }
                 ctx.fillText(data[3], textpos_x, y+2);
+        }
 	}
     function init(plot) 
 	{	plot.hooks.processOptions.push(processOptions);
