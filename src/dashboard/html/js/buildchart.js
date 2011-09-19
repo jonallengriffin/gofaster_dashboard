@@ -12,7 +12,7 @@ $(function() {
             modal: true
           });
 
-          $.getJSON('api/builddata/?buildid=' + buildid, function(data) {
+          $.getJSON('api/builds/' + buildid, function(data) {
             var events = data['events'];
             var summary = data['summary'];
 
