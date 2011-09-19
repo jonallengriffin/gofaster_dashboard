@@ -37,7 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 function show_graph(data) {
-  $('#container').html(null);
+  $('#container').html(null); // wipe out any previously generated graph
 
   $.plot($("#container"), data, {
     xaxis: {
@@ -208,22 +208,23 @@ function show_buildcharts() {
   $('#rightcontent').html(ich.dialog({ title:"Build charts" }));
 
   $.getJSON("api/builds/", function(data) {
-    var all_summaries = data['builds'];
+    var all_summaries = data;
 
     // reformat time/revision to look decent in summary form +
     // format the last job type
     all_summaries.forEach(function(buildday) {
       buildday["builds"] = buildday["builds"].map(function(b) {
         // get description of last job (FIXME: duplication with buildchart.js)
-        var jobtype = b.last_event.jobtype;
+        var last_event_desc = b.last_event.jobtype;
         if (b.last_event.jobtype !== "talos") {
-          jobtype = b.last_event.buildtype + " " + b.last_event.jobtype;
+          last_event_desc = b.last_event.buildtype + " " + b.last_event.jobtype;
         }
+        last_event_desc = b.last_event.os + " " + last_event_desc;
 
         return { 'revision': b['revision'].slice(0,8),
                  'uid': b['uid'],
                  'time_taken': ((b['time_taken'])/60.0/60.0).toFixed(3),
-                 'last_event': b.last_event.os + " " + jobtype
+                 'last_event': last_event_desc
                };
       });
     });
