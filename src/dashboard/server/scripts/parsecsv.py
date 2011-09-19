@@ -121,25 +121,27 @@ for uid in set(map(lambda e: e["uid"], events)):
 
     time_taken_per_os = {}
     def get_time_taken(events_for_build):
-        return (max(map(lambda e: e['finish_time'], events_for_build)) - 
-                min(map(lambda e: e['start_time'], events_for_build)))
+        return (max(map(lambda e: e['finish_time'], events_for_build)) -
+                min(map(lambda e: e['submitted_at'], events_for_build)))
     for os in set(map(lambda e: e['os'], events_for_build)):
         if os == 'win32':
             # win32 is just the build component, where we want end to end
             continue
         elif os == "win7" or os == "winxp":
             # for overall time, win7/winxp incorporates win32 build times
-            os_events_for_build = filter(lambda e: e['os']==os or e['os']=='win32', 
+            os_events_for_build = filter(lambda e: e['os']==os or e['os']=='win32',
                                          events_for_build)
         else:
             os_events_for_build = filter(lambda e: e['os']==os, events_for_build)
-        time_taken_per_os[os] = get_time_taken(os_events_for_build)        
+        time_taken_per_os[os] = get_time_taken(os_events_for_build)
     time_taken_overall = get_time_taken(events_for_build)
 
-    summaries.append({ 'revision': revision, 'uid': uid, 
+    summaries.append({ 'revision': revision, 'uid': uid,
                        'submitted_at': submitted_at,
                        'time_taken_per_os': time_taken_per_os,
                        'time_taken_overall': time_taken_overall,
                        'last_event': last_event })
+
+summaries.sort(key=lambda s: s['submitted_at'])
 
 pickle.dump({'events': events, 'summaries': summaries, 'build_jobs': build_jobs }, open(sys.argv[2], 'wb'))

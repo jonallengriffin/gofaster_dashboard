@@ -132,9 +132,21 @@ class EndToEndTimeHandler(object):
             include_outliers = 0
 
         summaries = get_build_summaries()
+
+        # only get summaries in range
         if range > 0:
             summaries = filter(lambda s: (datetime.today() - datetime.fromtimestamp(s['submitted_at'])).days < range,
                                summaries)
+
+        # filter out all but the first build summary per revision
+        filtered_summaries = []
+        revisions_processed = {}
+        for summary in summaries:
+            rev = summary['revision'][0:8] # sometimes we only have first 8 chars
+            if not revisions_processed.get(rev):
+                filtered_summaries.append(summary)
+                revisions_processed[rev] = 1
+        summaries = filtered_summaries
 
         if mode == "per_os":
             items = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: [])))
