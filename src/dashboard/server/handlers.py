@@ -304,13 +304,12 @@ class BuildsHandler(object):
         return map(lambda b: { 'date': b, 'builds': summaries[b] },
                    reversed(sorted(summaries.keys())))
 
-class BuildDataHandler(object):
+class BuildHandler(object):
 
     @templeton.handlers.json_response
-    def GET(self):
+    def GET(self, buildid):
         params, body = templeton.handlers.get_request_parms()
 
-        buildid = params["buildid"][0]
         summary = filter(lambda s: s['uid'] == buildid, get_build_summaries())[0]
         events = sorted(filter(lambda e: e['uid'] == buildid, get_build_events(0)), 
                              key=lambda e: e['start_time'])
@@ -375,7 +374,7 @@ urls = (
   '/overhead/(build|test)/?', "OverheadHandler",
   '/executiontime/(build|test)/?', "ExecutionTimeHandler",
   '/builds/?', "BuildsHandler",
-  '/builddata/?', "BuildDataHandler",
+  '/builds/([A-z0-9]+)/?', "BuildHandler",
   '/buildjobs/([0-9]+)/?', "BuildJobHandler",
   '/itbf/jobs/?', "IsThisBuildFasterJobsHandler",
 )
