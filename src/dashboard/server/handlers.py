@@ -142,7 +142,7 @@ class EndToEndTimeHandler(object):
         filtered_summaries = []
         revisions_processed = {}
         for summary in summaries:
-            rev = summary['revision'][0:8] # sometimes we only have first 8 chars
+            rev = summary['revision'][0:12] # sometimes we only have first 12 chars
             if not revisions_processed.get(rev):
                 filtered_summaries.append(summary)
                 revisions_processed[rev] = 1
