@@ -58,7 +58,7 @@ def to_seconds(stopwatch_time):
     return seconds + minutes * 60 + hours * 60 * 60 + days * 60 * 60 * 24
 
 def suite_event_key(row):
-    return "".join([row["uid"],row["suitename"],row["jobtype"],row["os"]])
+    return "".join([row["uid"],row["builder_name"]])
 
 f = open(sys.argv[1], 'r')
 reader = csv.DictReader(f)
