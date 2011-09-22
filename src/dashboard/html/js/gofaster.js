@@ -209,26 +209,6 @@ function show_buildcharts() {
 
   $.getJSON("api/builds/", function(data) {
     var all_summaries = data;
-
-    // reformat time/revision to look decent in summary form +
-    // format the last job type
-    all_summaries.forEach(function(buildday) {
-      buildday["builds"] = buildday["builds"].map(function(b) {
-        // get description of last job (FIXME: duplication with buildchart.js)
-        var last_event_desc = b.last_event.jobtype;
-        if (b.last_event.jobtype !== "talos") {
-          last_event_desc = b.last_event.buildtype + " " + b.last_event.jobtype;
-        }
-        last_event_desc = b.last_event.os + " " + last_event_desc;
-
-        return { 'revision': b['revision'].slice(0,8),
-                 'uid': b['uid'],
-                 'time_taken': ((b['time_taken'])/60.0/60.0).toFixed(3),
-                 'last_event': last_event_desc
-               };
-      });
-    });
-
     $('#dialog_content').html(ich.buildcharts({ summaries: all_summaries }));
   });
 }

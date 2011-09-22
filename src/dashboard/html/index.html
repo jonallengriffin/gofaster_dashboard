@@ -140,7 +140,13 @@
         <li>{{date}}</li>
         <ul level="2">
           {{#builds}}
-          <li><a href="buildchart.html#/builds/{{uid}}" target="_blank">{{revision}}</a> ({{time_taken}} hours, last event: {{last_event}})</li>
+          <li>revision {{revision}}
+            <ul level=3">
+              {{#commits}}
+                 <li><a href="buildchart.html#/builds/{{uid}}" target="_blank">{{time_taken}} hours</a>, last job: {{last_job}}</li>
+              {{/commits}}
+            </ul>
+          </li>
           {{/builds}}
         </ul>
         {{/summaries}}

@@ -301,20 +301,26 @@ class BuildsHandler(object):
     def GET(self):
         summaries = {}
         for summary in get_build_summaries():
-            date = get_datestr(summary['submitted_at'])
-            if not summaries.get(date):
-                summaries[date] = []
-            summaries[date].append({'uid': summary['uid'], 
-                                    'revision': summary['revision'],
-                                    'time_taken': summary['time_taken_overall'],
-                                    'last_event': summary['last_event']})
-        
-        for date in summaries.keys():
-            summaries[date].sort(key=lambda s: s['time_taken'])
-            summaries[date].reverse()
+            revision = summary['revision'][0:12]
+            if not summaries.get(revision):
+                summaries[revision] = []
+            summaries[revision].append({'uid': summary['uid'], 
+                                        'date': get_datestr(summary['submitted_at']),
+                                        'submitted_at': summary['submitted_at'],
+                                        'revision': revision,
+                                        'time_taken': '{0:1.2f}'.format(summary['time_taken_overall']/60.0/60),
+                                        'last_job': summary['last_event']['description']})
+       
 
-        return map(lambda b: { 'date': b, 'builds': summaries[b] },
-                   reversed(sorted(summaries.keys())))
+        result = {}
+        for revision in summaries.keys():
+            summaries[revision].sort(key=lambda s: s['submitted_at'])
+            date = summaries[revision][0]['date']
+            if date not in result:
+                result[date] = []
+            result[date].append({'revision': revision, 'commits': summaries[revision]})
+
+        return map(lambda x: { 'date': x, 'builds': result[x] }, reversed(sorted(result.keys())))
 
 class BuildHandler(object):
 
