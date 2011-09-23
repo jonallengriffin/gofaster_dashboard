@@ -117,3 +117,10 @@ a:hover{
     width: 150px;
     float: left;
 }
+.nobullet {
+  list-style-type: none;
+}
+.indented {
+  text-indent: 1em;
+}
+

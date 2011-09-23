@@ -140,10 +140,11 @@
         <li>{{date}}</li>
         <ul level="2">
           {{#builds}}
-          <li>revision {{revision}}
+          <li class="nobullet">revision {{revision}}
             <ul level=3">
               {{#commits}}
-                 <li><a href="buildchart.html#/builds/{{uid}}" target="_blank">{{time_taken}} hours</a>, last job: {{last_job}}</li>
+                 <li><a href="buildchart.html#/builds/{{uid}}" target="_blank">{{time_taken}} hours</a>, started at {{start_time}}</li>
+                 <li class="nobullet indented">last job: {{last_job}}</li>
               {{/commits}}
             </ul>
           </li>

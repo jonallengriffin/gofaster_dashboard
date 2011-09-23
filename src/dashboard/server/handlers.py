@@ -304,9 +304,11 @@ class BuildsHandler(object):
             revision = summary['revision'][0:12]
             if not summaries.get(revision):
                 summaries[revision] = []
+            started = datetime.fromtimestamp(summary['submitted_at'])
             summaries[revision].append({'uid': summary['uid'], 
                                         'date': get_datestr(summary['submitted_at']),
                                         'submitted_at': summary['submitted_at'],
+                                        'start_time': str(started),
                                         'revision': revision,
                                         'time_taken': '{0:1.2f}'.format(summary['time_taken_overall']/60.0/60),
                                         'last_job': summary['last_event']['description']})
