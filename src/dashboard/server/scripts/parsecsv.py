@@ -82,6 +82,9 @@ for row in reader:
 
     if row["jobtype"] == "talos":
         event['jobtype'] = "talos"
+    elif 'opt pgo' in row['jobtype']:
+        event['buildtype'] = 'pgo'
+        event['jobtype'] = row['jobtype'][8:]
     else:
         (event['buildtype'], event['jobtype']) = row["jobtype"].split(" ")
 
