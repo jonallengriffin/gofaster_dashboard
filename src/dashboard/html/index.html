@@ -112,6 +112,10 @@
           {{>loading}}
         </div>
         <br/>
+        {{#comment}}
+        <p>{{comment}}</p>
+        <br/>
+        {{/comment}}
         <label>Range:</label>
         <select id="range" type="text" text-align="right">
           <option id="range30" value="30">Last 30 days</option>
