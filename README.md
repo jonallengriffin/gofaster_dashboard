@@ -14,16 +14,14 @@ from the root directory of this project:
 
     ./bootstrap.sh
 
-Then, copy over the sitewide cfg file with the sample one (you can modify the
-settings if you want, though the defaults should be fine for getting something
-up and running)
-
-    cd src/dashboard/server && cp settings.cfg.example settings.cfg && cd ../../../
-
-You'll need to process a copy of release engineering's build data for most of the
+You'll also need to process a copy of release engineering's build data for most of the
 views to work:
 
     ./bin/fetch-and-process-builddata.sh
+
+If desired, edit the server config file (the defaults should be fine for
+getting something up and running though). It is located in
+`src/dashboard/server/settings.cfg`.
 
 To run the server in test mode, do the following from the root directory:
 
