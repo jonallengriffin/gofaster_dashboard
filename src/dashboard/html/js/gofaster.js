@@ -126,7 +126,10 @@ function to_hours(value){
 //Each function below represents a graph to be displayed (yes, there's a lot of duplication)
 
 function show_endtoend(mode, params) {
-  $('#rightcontent').html(ich.graph({ title: mode === "os" ? "Average End to End Performance per OS" : "Average End to End Performance" }));
+  $('#rightcontent').html(ich.graph({
+    title: mode === "os" ? "Average End to End Performance per OS" : "Average End to End Performance",
+    comment: "Averages only include the first build for that revision (this excludes Nightly and PGO builds)"
+  }));
   update_form_options('endtoend', mode, params);
 
   $.getJSON('api/endtoendtimes/' + mode +'?' + create_paramstr(params), function(data) {
@@ -148,7 +151,10 @@ function show_endtoend(mode, params) {
 
 //Build and Test Execution Dashboard
 function show_executiontime(type, params) {
-  $('#rightcontent').html(ich.graph({ title: "Average execution times for "+type }));
+  $('#rightcontent').html(ich.graph({
+    title: "Average execution times for "+type,
+    comment: null
+  }));
   update_form_options('executiontime', type, params);
 
   $.getJSON('api/executiontime/'+type+'?' + create_paramstr(params), function(data) {
@@ -167,7 +173,10 @@ function show_executiontime(type, params) {
 }
 
 function show_waittime(type, params) {
-  $('#rightcontent').html(ich.graph({ title: "Average wait times for " + type }));
+  $('#rightcontent').html(ich.graph({
+    title: "Average wait times for " + type,
+    comment: null
+  }));
   update_form_options('waittime', type, params);
 
   $.getJSON('api/waittime/'+ type + '?' + create_paramstr(params), function(data) {
@@ -186,7 +195,10 @@ function show_waittime(type, params) {
 }
 
 function show_overhead(type, params) {
-  $('#rightcontent').html(ich.graph({ title: "Average setup/teardown times for " + type }));
+  $('#rightcontent').html(ich.graph({
+    title: "Average setup/teardown times for " + type,
+    comment: null
+  }));
   update_form_options('overhead', type, params);
 
   $.getJSON('api/overhead/'+ type + '?' + create_paramstr(params), function(data) {

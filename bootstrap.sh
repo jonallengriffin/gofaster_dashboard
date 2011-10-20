@@ -79,3 +79,9 @@ exec \$PYTHON \$SCRIPT_DIR/$I.py \$@
 EOF
     chmod a+x $SCRIPT
 done
+
+# Copy over the server settings file (if it doesn't exist yet)
+SERVER_DIR=src/dashboard/server
+if [ ! -e $SERVER_DIR/settings.cfg ]; then
+    cp $SERVER_DIR/settings.cfg.example $SERVER_DIR/settings.cfg
+fi
