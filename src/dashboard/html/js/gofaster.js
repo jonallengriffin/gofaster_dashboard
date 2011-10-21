@@ -128,7 +128,7 @@ function to_hours(value){
 function show_endtoend(mode, params) {
   $('#rightcontent').html(ich.graph({
     title: mode === "os" ? "Average End to End Performance per OS" : "Average End to End Performance",
-    comment: "Averages only include the first build for each revision built on that day (this excludes Nightly and PGO builds)"
+    comment: "Averages only include the first build for each revision (this excludes Nightly and PGO builds)"
   }));
   update_form_options('endtoend', mode, params);
 
