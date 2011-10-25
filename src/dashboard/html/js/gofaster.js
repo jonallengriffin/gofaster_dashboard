@@ -52,8 +52,8 @@ function show_graph(data) {
       points: { show: true }
     },
     legend: {
-      position: "nw",
-      hideable: true
+      hideable: true,
+      container: $("#legend")
     }
   });
 }
@@ -126,6 +126,7 @@ function to_hours(value){
 //Each function below represents a graph to be displayed (yes, there's a lot of duplication)
 
 function show_endtoend(mode, params) {
+  $('#legend').html(null);
   $('#rightcontent').html(ich.graph({
     title: mode === "os" ? "Average End to End Performance per OS" : "Average End to End Performance",
     comment: "Averages only include the first build for each revision (this excludes Nightly and PGO builds)"
@@ -151,6 +152,7 @@ function show_endtoend(mode, params) {
 
 //Build and Test Execution Dashboard
 function show_executiontime(type, params) {
+  $('#legend').html(null);
   $('#rightcontent').html(ich.graph({
     title: "Average execution times for "+type,
     comment: null
@@ -173,6 +175,7 @@ function show_executiontime(type, params) {
 }
 
 function show_waittime(type, params) {
+  $('#legend').html(null);
   $('#rightcontent').html(ich.graph({
     title: "Average wait times for " + type,
     comment: null
@@ -195,6 +198,7 @@ function show_waittime(type, params) {
 }
 
 function show_overhead(type, params) {
+  $('#legend').html(null);
   $('#rightcontent').html(ich.graph({
     title: "Average setup/teardown times for " + type,
     comment: null
@@ -217,6 +221,7 @@ function show_overhead(type, params) {
 }
 
 function show_buildcharts() {
+  $('#legend').html(null);
   $('#rightcontent').html(ich.dialog({ title:"Build charts" }));
 
   $.getJSON("api/builds/", function(data) {
@@ -226,7 +231,7 @@ function show_buildcharts() {
 }
 
 function show_isthisbuildfaster() {
-
+  $('#legend').html(null);
   $('#rightcontent').html(ich.dialog({ title:"Is this build faster?" }));
 
   $.getJSON("api/itbf/jobs/", function(data) {
@@ -259,6 +264,7 @@ $(function() {
   var router = Router({
     '/': {
       on: function() {
+        $('#legend').html(null);
         $('#rightcontent').html(ich.index());
       }
     },
