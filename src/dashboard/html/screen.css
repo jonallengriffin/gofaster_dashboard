@@ -72,19 +72,28 @@ a:hover{
     background:#000;
     margin-bottom:20px;
 }
+#rightcontainer {
+    width: 798px;
+    float: right;
+    background:#fff;
+    background-opacity:0.5;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    margin-top:22px;
+    border:1px #ccc solid;
+}
 #rightcontent{
     width:598px;
-    float:right;
+    float:left;
     padding-left:30px;
     padding-right:30px;
     padding-bottom:35px;
     height:100%;
     background:#fff;
     background-opacity:0.5;
-    -moz-border-radius: 5px;
-    border-radius: 5px;
-    border:1px #ccc solid;
-    margin-top:22px;
+}
+#legend {
+    margin-top: 60px;
 }
 #leftcontent{
     width:290px;
@@ -107,7 +116,7 @@ a:hover{
 }
 #content{
     margin:0 auto;
-    width:960px;
+    width:1160px;
 }
 #container {
     width: 600px;
