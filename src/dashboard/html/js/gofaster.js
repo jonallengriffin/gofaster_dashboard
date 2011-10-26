@@ -38,6 +38,7 @@
 
 function show_graph(data) {
   $('#container').html(null); // wipe out any previously generated graph
+  $('#graphtooltip').remove(); // wipe out any still open tooltips
 
   $.plot($("#container"), data, {
     xaxis: {
