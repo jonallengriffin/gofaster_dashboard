@@ -75,16 +75,11 @@ function show_graph_tooltip(x, y, content) {
 
   $("#graphtooltip").remove();
 
-  $('<div id="graphtooltip">' + content + '</div>').css({
-    position: 'absolute',
-    display: 'none',
-    top: y + 5,
-    left: x + 5,
-    border: '1px solid #fdd',
-    padding: '2px',
-    'background-color': '#fee',
-    opacity: 0.80
-  }).appendTo('body').fadeIn(200);
+  $('<div id="graphtooltip">' + content + '</div>')
+    .css({top: y + 5,
+          left: x + 5})
+    .appendTo('body')
+    .fadeIn(200);
 
 }
 
