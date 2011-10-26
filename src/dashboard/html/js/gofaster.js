@@ -54,8 +54,37 @@ function show_graph(data) {
     legend: {
       position: "nw",
       hideable: true
+    },
+    grid: {
+      hoverable: "true"
     }
   });
+
+  $("#container").bind("plothover", function (event, position, item) {
+    if(item) {
+        var x = item.datapoint[0].toFixed(2),
+            y = item.datapoint[1].toFixed(2);
+
+        show_graph_tooltip(item.pageX, item.pageY, "Build time (hours): " + y);
+    }
+  });
+}
+
+function show_graph_tooltip(x, y, content) {
+
+  $("#graphtooltip").remove();
+
+  $('<div id="graphtooltip">' + content + '</div>').css({
+    position: 'absolute',
+    display: 'none',
+    top: y + 5,
+    left: x + 5,
+    border: '1px solid #fdd',
+    padding: '2px',
+    'background-color': '#fee',
+    opacity: 0.80
+  }).appendTo('body').fadeIn(200);
+
 }
 
 function create_paramstr(paramdict) {
