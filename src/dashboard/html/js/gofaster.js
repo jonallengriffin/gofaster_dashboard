@@ -38,6 +38,7 @@
 
 function show_graph(data) {
   $('#container').html(null); // wipe out any previously generated graph
+  $('#graphtooltip').remove(); // wipe out any still open tooltips
 
   $.plot($("#container"), data, {
     xaxis: {
@@ -54,8 +55,32 @@ function show_graph(data) {
     legend: {
       position: "nw",
       hideable: true
+    },
+    grid: {
+      hoverable: "true"
     }
   });
+
+  $("#container").bind("plothover", function (event, position, item) {
+    if(item) {
+        var x = item.datapoint[0].toFixed(2),
+            y = item.datapoint[1].toFixed(2);
+
+        show_graph_tooltip(item.pageX, item.pageY, "Build time (hours): " + y);
+    }
+  });
+}
+
+function show_graph_tooltip(x, y, content) {
+
+  $("#graphtooltip").remove();
+
+  $('<div id="graphtooltip">' + content + '</div>')
+    .css({top: y + 5,
+          left: x + 5})
+    .appendTo('body')
+    .fadeIn(200);
+
 }
 
 function create_paramstr(paramdict) {
