@@ -1,5 +1,5 @@
 [database]
-ES_SERVER=elasticsearch1.metrics.sjc1.mozilla.com:9200
+ES_SERVER=elasticsearch1.metrics.scl3.mozilla.com:9200
 INDEX=logs
 TYPE=testpasses
 
